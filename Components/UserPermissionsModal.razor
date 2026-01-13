@@ -1,0 +1,121 @@
+@using LMS.ViewModels
+
+@if (Show)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px);" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow-lg border-0">
+                
+                @* HEADER *@
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title w-100 text-center fw-bold">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        Настройка прав доступа
+                    </h5>
+                </div>
+
+                @* ACTIONS & SEARCH *@
+                <div class="bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div class="input-group w-50">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0" placeholder="Поиск таблицы..." @bind="searchTerm" @bind:event="oninput" />
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" @onclick="() => SetAll(true)">Разрешить всё</button>
+                        <button class="btn btn-outline-secondary" @onclick="() => SetAll(false)">Запретить всё</button>
+                    </div>
+                </div>
+
+                @* BODY *@
+                <div class="modal-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th class="ps-4">Наименование таблицы</th>
+                                <th class="text-center" title="Просмотр (Select)"><i class="bi bi-eye text-primary"></i></th>
+                                <th class="text-center" title="Создание (Insert)"><i class="bi bi-plus-circle text-success"></i></th>
+                                <th class="text-center" title="Изменение (Update)"><i class="bi bi-pencil text-warning"></i></th>
+                                <th class="text-center" title="Удаление (Delete)"><i class="bi bi-trash text-danger"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in FilteredPermissions)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-semibold">@p.DisplayName</div>
+                                        <code class="x-small text-muted">@p.TableName</code>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="form-check d-flex justify-content-center">
+                                            <input type="checkbox" class="form-check-input" @bind="p.CanSelect" />
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="form-check d-flex justify-content-center">
+                                            <input type="checkbox" class="form-check-input" @bind="p.CanInsert" />
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="form-check d-flex justify-content-center">
+                                            <input type="checkbox" class="form-check-input border-warning" @bind="p.CanUpdate" />
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="form-check d-flex justify-content-center">
+                                            <input type="checkbox" class="form-check-input border-danger" @bind="p.CanDelete" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @* FOOTER *@
+                <div class="modal-footer bg-light">
+                    <button class="btn btn-link text-secondary" @onclick="OnClose">Отмена</button>
+                    <button class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="HandleSave" disabled="@IsProcessing">
+                        @if (IsProcessing) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                        Сохранить права
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .x-small { font-size: 0.75rem; }
+    .table-hover tbody tr:hover { background-color: rgba(13, 110, 253, 0.03); }
+    .form-check-input { width: 1.25rem; height: 1.25rem; cursor: pointer; }
+    .form-check-input:checked.border-danger { background-color: #dc3545; border-color: #dc3545; }
+    .form-check-input:checked.border-warning { background-color: #ffc107; border-color: #ffc107; }
+</style>
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public string UserLogin { get; set; } = "";
+    [Parameter] public List<TablePermissionVm> Permissions { get; set; } = new();
+    [Parameter] public EventCallback<List<TablePermissionVm>> OnSave { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public bool IsProcessing { get; set; }
+
+    private string searchTerm = "";
+
+    private IEnumerable<TablePermissionVm> FilteredPermissions => 
+        string.IsNullOrWhiteSpace(searchTerm) 
+        ? Permissions 
+        : Permissions.Where(x => x.DisplayName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) 
+                              || x.TableName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    private void SetAll(bool value)
+    {
+        foreach (var p in FilteredPermissions)
+        {
+            p.CanSelect = p.CanInsert = p.CanUpdate = p.CanDelete = value;
+        }
+    }
+
+    private async Task HandleSave() => await OnSave.InvokeAsync(Permissions);
+}

@@ -1,0 +1,7 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Roles = "Admin, Moderator, Employee")]
+
+<PageTitle>Главная страница</PageTitle>

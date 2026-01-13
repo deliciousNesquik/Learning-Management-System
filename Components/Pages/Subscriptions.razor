@@ -1,0 +1,433 @@
+@page "/subscriptions"
+@using LMS.Components.Shared
+@using LMS.Components.Table
+@using LMS.Interfaces
+@using LMS.Services
+@using LMS.ViewModels.BranchViewModel
+@using LMS.ViewModels.DirectorViewModel
+@using LMS.ViewModels.OrganizationViewModel
+@using LMS.ViewModels.SubscriptionViewModel
+@using Microsoft.AspNetCore.Authorization
+@inject UserSessionAccessor UserSessionAccessor
+@inject ISubscriptionService SubscriptionService
+@inject NavigationManager NavigationManager
+@inject UserPermissions UserPermissions
+@inject IBranchService BranchService
+@rendermode InteractiveServer
+
+@attribute [Authorize(Roles = "Admin")]
+
+@if (!_isLoaded)
+{
+    <div class="d-flex justify-content-center align-items-center" style="height: 50vh;">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+}
+else if (!canRead)
+{
+    <div class="container mt-5">
+        <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center p-4">
+            <i class="bi bi-shield-lock-fill fs-1 me-4"></i>
+            <div>
+                <h4 class="alert-heading fw-bold">Доступ ограничен</h4>
+                <p class="mb-0">У вас недостаточно прав для просмотра раздела "Подписки".</p>
+                <button class="btn btn-outline-danger btn-sm mt-3" @onclick='() => NavigationManager.NavigateTo("/")'>На главную</button>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid px-4 mt-3 animate-fade-in">
+
+        @* Таблица *@
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="mb-0 fw-bold text-secondary">Список подписок</h5>
+                    </div>
+                    @if (canInsert)
+                    {
+                        <div class="col-auto">
+                            <button class="btn btn-primary d-flex align-items-center shadow-sm" @onclick="OpenAddModal">
+                                <i class="bi bi-person-plus-fill me-2"></i> Добавить подписку
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <GenericTable TItem="SubscriptionListItemVm"
+                                  Data="page"
+                                  Columns="columns"
+                                  Query="query"
+                                  OnQueryChanged="LoadData"/>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@* Модальное окно ДОБАВЛЕНИЯ *@
+@if (_showAddModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); z-index: 1050;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Новая подписка</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => _showAddModal = false"></button>
+                </div>
+                <EditForm Model="_createModel" OnValidSubmit="HandleCreate">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Название</label>
+                                <InputText @bind-Value="_createModel.Name" class="form-control" placeholder="Напр: Годовой стандарт" />
+                                <ValidationMessage For="@(() => _createModel.Name)" class="text-danger small disabled" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Филиал</label>
+                                <InputSelect @bind-Value="_createModel.BranchUuid" class="form-select">
+                                    <option value="@Guid.Empty">-- Выберите филиал --</option>
+                                    @foreach (var branch in _allBranches)
+                                    {
+                                        <option value="@branch.Uuid">@branch.Name</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => _createModel.BranchUuid)" class="text-danger small" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Начало</label>
+                                <InputDate @bind-Value="_createModel.StartDate" class="form-control disabled" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Окончание</label>
+                                <InputDate @bind-Value="_createModel.EndDate" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Лимит мест</label>
+                                <InputNumber @bind-Value="_createModel.EmployeesLimit" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Цена</label>
+                                <InputNumber @bind-Value="_createModel.Price" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Валюта</label>
+                                <InputText @bind-Value="_createModel.Currency" class="form-control" />
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="form-check form-switch mb-2">
+                                    <InputCheckbox @bind-Value="_createModel.IsActive" class="form-check-input" id="activeCheck" />
+                                    <label class="form-check-label" for="activeCheck">Активна</label>
+                                </div>
+                            </div>
+
+                            @* ВЫБОР КУРСОВ *@
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Доступные курсы в подписке</label>
+                                <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto; background: #f8f9fa;">
+                                    @foreach (var course in _allCourses)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="course_@course.Uuid"
+                                                   checked="@_createModel.SelectedCourseUuids.Contains(course.Uuid)"
+                                                   @onchange="@((ChangeEventArgs e) => ToggleCourse(_createModel.SelectedCourseUuids, course.Uuid, e.Value))" />
+                                            <label class="form-check-label" for="course_@course.Uuid">@course.Name</label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" @onclick="() => _showAddModal = false">Отмена</button>
+                        <button type="submit" class="btn btn-primary" disabled="@isProcessing">
+                            @if (isProcessing) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                            Создать
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@* Модальное окно РЕДАКТИРОВАНИЯ *@
+@if (_showEditModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); z-index: 1050;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Редактирование подписки: @_selectedName</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => _showAddModal = false"></button>
+                </div>
+                <EditForm Model="_editModel" OnValidSubmit="HandleUpdate">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Название</label>
+                                <InputText @bind-Value="_editModel.Name" class="form-control disabled" placeholder="Напр: Годовой стандарт" />
+                                <ValidationMessage For="@(() => _editModel.Name)" class="text-danger small" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Филиал</label>
+                                <InputSelect @bind-Value="_editModel.BranchUuid" class="form-select">
+                                    <option value="@Guid.Empty">-- Выберите филиал --</option>
+                                    @foreach (var branch in _allBranches)
+                                    {
+                                        <option value="@branch.Uuid">@branch.Name</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => _editModel.BranchUuid)" class="text-danger small" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Начало</label>
+                                <InputDate @bind-Value="_editModel.StartDate" class="form-control disabled" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Окончание</label>
+                                <InputDate @bind-Value="_editModel.EndDate" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Лимит мест</label>
+                                <InputNumber @bind-Value="_editModel.EmployeesLimit" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Цена</label>
+                                <InputNumber @bind-Value="_editModel.Price" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Валюта</label>
+                                <InputText @bind-Value="_editModel.Currency" class="form-control" />
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="form-check form-switch mb-2">
+                                    <InputCheckbox @bind-Value="_editModel.IsActive" class="form-check-input" id="activeCheck" />
+                                    <label class="form-check-label" for="activeCheck">Активна</label>
+                                </div>
+                            </div>
+
+                            @* ВЫБОР КУРСОВ *@
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Доступные курсы в подписке</label>
+                                <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto; background: #f8f9fa;">
+                                    @foreach (var course in _allCourses)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="course_@course.Uuid"
+                                                   checked="@_editModel.SelectedCourseUuids.Contains(course.Uuid)"
+                                                   @onchange="@((ChangeEventArgs e) => ToggleCourse(_editModel.SelectedCourseUuids, course.Uuid, e.Value))" />
+                                            <label class="form-check-label" for="course_@course.Uuid">@course.Name</label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" @onclick="() => _showEditModal = false">Отмена</button>
+                        <button type="submit" class="btn btn-primary" disabled="@isProcessing">
+                            @if (isProcessing) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                            Сохранить
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+<ConfirmDeleteModal
+    IsVisible="_showDeleteModal"
+    Title="Удалить подписку?"
+    ItemName="@_selectedName"
+    IsProcessing="isProcessing"
+    OnConfirm="HandleDelete"
+    OnCancel="() => _showDeleteModal = false"
+    ErrorMessage="@_errorMessage">
+</ConfirmDeleteModal>
+
+
+@code {
+    private bool _isLoaded;
+    private bool isProcessing;
+    private bool canRead, canInsert, canUpdate, canDelete;
+    
+    private TableQuery query = new() { PageSize = 10 };
+    private PagedResult<SubscriptionListItemVm> page = new();
+    private List<TableColumn<SubscriptionListItemVm>> columns = new();
+    
+    private List<BranchNamesLookupVm> _allBranches = [];
+    private List<CourseLookupVm> _allCourses = [];
+    
+    // Состояния модалок
+    private bool _showAddModal, _showEditModal, _showDeleteModal;
+    
+    // Модели
+    private CreateSubscriptionVm _createModel = new();
+    private EditSubscriptionVm _editModel = new();
+    private Guid _selectedUuid;
+    private string _selectedName = "";
+    private bool _isSaved;
+    private string? _errorMessage;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = UserSessionAccessor.UserUuid;
+        if (userId.HasValue)
+        {
+            canRead = await UserPermissions.HasPermission(userId, "subscriptions", "select");
+            canInsert = await UserPermissions.HasPermission(userId, "subscriptions", "insert");
+            canUpdate = await UserPermissions.HasPermission(userId, "subscriptions", "update");
+            canDelete = await UserPermissions.HasPermission(userId, "subscriptions", "delete");
+        }
+
+        if (canRead)
+        {
+            await LoadInitialData();
+        }
+        _isLoaded = true;
+    }
+
+    private async Task LoadInitialData()
+    {
+        _allCourses = await SubscriptionService.GetAllCoursesForLookupAsync();
+        _allBranches = await BranchService.GetAllBranchesAsync();
+        DefineTableColumns();
+        await LoadData(query);
+    }
+    
+    private void DefineTableColumns()
+    {
+        columns =
+        [
+            new() { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
+            new() { Title = "Название", Value = a => a.Name, Sortable = true, SortKey = "uuid" },
+            new() { Title = "Начало", Value = a => a.StartDate, Sortable = true, SortKey = "uuid" },
+            new() { Title = "Конец", Value = a => a.EndDate, Sortable = true, SortKey = "uuid" },
+            new() { Title = "Лимит обучаемых", Value = a => a.EmployeesLimit, Sortable = true, SortKey = "uuid" },
+            new() { Title = "Статус", Value = a => a.IsActive, Sortable = true, SortKey = "uuid" },
+            new() { Title = "Цена", Value = a => (a.Price + " " + a.Currency), Sortable = true, SortKey = "uuid" },
+            new() { Title = "Филиал", Value = a => a.BranchName, Sortable = true, SortKey = "uuid" },
+            new() { Title = "Кол-во курсов", Value = a => a.CoursesCount, Sortable = true, SortKey = "uuid" },
+            new() { Title = "Создано", Value = a => a.CreatedAt, Sortable = true, SortKey = "uuid" }
+        ];
+        
+        if (canUpdate || canDelete)
+        {
+            columns.Add(new TableColumn<SubscriptionListItemVm>
+            {
+                Title = "Действия",
+                Sortable = false,
+                Template = subscription => @<div class="btn-group btn-group-sm">
+                    @if (canUpdate) { <button class="btn btn-outline-primary" @onclick="() => OpenEditModal(subscription)" title="Редактировать"><i class="bi bi-pencil"></i></button> }
+                    @if (canDelete) { <button class="btn btn-outline-danger" @onclick="() => ConfirmDelete(subscription)" title="Удалить"><i class="bi bi-trash"></i></button> }
+                </div>
+            });
+        }
+    }
+
+    private async Task LoadData(TableQuery q)
+    {
+        query = q;
+        page = await SubscriptionService.GetPagedAsync(query);
+    }
+    
+    private void ToggleCourse(List<Guid> list, Guid courseUuid, object? checkedValue)
+    {
+        var isChecked = (bool)(checkedValue ?? false);
+        if (isChecked)
+        {
+            if (!list.Contains(courseUuid)) list.Add(courseUuid);
+        }
+        else
+        {
+            list.Remove(courseUuid);
+        }
+    }
+    
+    private void OpenAddModal()
+    {
+        _createModel = new() {};
+        _showAddModal = true;
+    }
+
+    private async Task HandleCreate()
+    {
+        isProcessing = true;
+        var result = await SubscriptionService.CreateAsync(_createModel);
+        if (result.IsSuccess)
+        {
+            _showAddModal = false;
+            await LoadInitialData();
+        }
+        isProcessing = false;
+    }
+
+    private void OpenEditModal(SubscriptionListItemVm mod)
+    {
+        _editModel = new EditSubscriptionVm() 
+        { 
+            Uuid = mod.Uuid, 
+            Name = mod.Name,
+            BranchUuid = mod.BranchUuid,
+            StartDate = mod.StartDate,
+            EndDate = mod.EndDate,
+            EmployeesLimit = mod.EmployeesLimit,
+            Price = (decimal)mod.Price,
+            Currency = mod.Currency,
+            IsActive = mod.IsActive,
+            BillingPeriod = (mod.EndDate - mod.StartDate),
+            SelectedCourseUuids = mod.Courses,
+        };
+        _showEditModal = true;
+    }
+
+    private async Task HandleUpdate()
+    {
+        isProcessing = true;
+        var result = await SubscriptionService.UpdateAsync(_editModel);
+        if (result.IsSuccess)
+        {
+            _showEditModal = false;
+            await LoadData(query);
+        }
+        isProcessing = false;
+    }
+
+    private void ConfirmDelete(SubscriptionListItemVm mod)
+    {
+        _selectedUuid = mod.Uuid;
+        _selectedName = mod.Name;
+        _showDeleteModal = true;
+        _errorMessage = null;
+    }
+
+    private async Task HandleDelete()
+    {
+        isProcessing = true;
+        var result = await SubscriptionService.DeleteAsync(_selectedUuid);
+        if (result.IsSuccess)
+        {
+            _showDeleteModal = false;
+            await LoadInitialData();
+        }
+        else
+        {
+            // Выводим текст ошибки из результата сервиса
+            // В зависимости от вашего DeleteUserResult, свойство может называться Message или Error
+            _errorMessage = result.ErrorCode; 
+        }
+        isProcessing = false;
+    }
+}

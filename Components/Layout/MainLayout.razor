@@ -1,0 +1,238 @@
+﻿@using LMS.Components.Shared
+@using LMS.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+@inject UserSessionAccessor UserSessionAccessor
+@inject UserPermissions UserPermissions
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container-fluid">
+        <img src="@Assets["icons/logo.png"]" width="50" height="50" alt="logo"/>
+        <a class="navbar-brand" href="#">СДО</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                Администрирование
+                            </a>
+                            @if (!_canReadAdministrators && !_canReadOrganizations && !_canReadSubscriptions && !_canReadModerators && !_canReadAuditHistory)
+                            {
+                                <li><a class="dropdown-item disabled" href="/">Администраторы</a></li>
+                                <li><a class="dropdown-item disabled" href="/">Организации</a></li>
+                                <li><a class="dropdown-item disabled" href="/">Директора</a></li>
+                                <li><a class="dropdown-item disabled" href="/">Подписки</a></li>
+                                <li><a class="dropdown-item disabled" href="/">Модераторы</a></li>
+                                
+                                <li> <hr class="dropdown-divider"> </li>
+                                
+                                <li><a class="dropdown-item disabled" href="/">История изменения таблиц</a></li>
+                            }
+                            else
+                            {
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    @if (_canReadAdministrators) { <li><a class="dropdown-item" href="/administrators">Администраторы</a></li> }
+                                    else if(!_canReadAdministrators) { <li><a class="dropdown-item disabled" href="/">Администраторы</a></li> }
+                                    
+                                    @if (_canReadOrganizations) { <li><a class="dropdown-item" href="/organizations">Организации</a></li> }
+                                    else if(!_canReadOrganizations) { <li><a class="dropdown-item disabled" href="/">Организации</a></li> }
+                                    
+                                    @if (_canReadBranches) { <li><a class="dropdown-item" href="/branches">Филиалы</a></li> }
+                                    else if(!_canReadBranches) { <li><a class="dropdown-item disabled" href="/">Филиалы</a></li> }
+                                    
+                                    @if (_canReadDirectors) { <li><a class="dropdown-item" href="/directors">Директора</a></li> }
+                                    else if(!_canReadDirectors) { <li><a class="dropdown-item disabled" href="/">Директора</a></li> }
+                                    
+                                    @if (_canReadSubscriptions) { <li><a class="dropdown-item" href="/subscriptions">Подписки</a></li> }
+                                    else if(!_canReadSubscriptions) { <li><a class="dropdown-item disabled" href="/">Подписки</a></li> }
+                                    
+                                    @if (_canReadModerators) { <li><a class="dropdown-item" href="/moderators">Модераторы</a></li> }
+                                    else if(!_canReadModerators) { <li><a class="dropdown-item disabled" href="/">Модераторы</a></li> }
+
+                                    @if (_canReadAuditHistory)
+                                    {
+                                        <li> <hr class="dropdown-divider"> </li>
+                                        <li><a class="dropdown-item" href="/auditHistory">История изменения таблиц</a></li>
+                                    }
+                                </ul>
+                            }
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
+                
+                <AuthorizeView Roles="Admin, Moderator">
+                    <Authorized>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                Курсы
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                
+                                @if (_canReadCourses) { <li><a class="dropdown-item" href="/courses">Курсы</a></li> }
+                                else if(!_canReadCourses) { <li><a class="dropdown-item disabled" href="#">Курсы</a></li> }
+                                
+                                @if (_canReadMaterials) { <li><a class="dropdown-item" href="/materials">Материалы</a></li> }
+                                else if(!_canReadMaterials) { <li><a class="dropdown-item disabled" href="#">Материалы</a></li> }
+                                
+                                @if (_canReadAssessments) { <li><a class="dropdown-item" href="/assessments">Тесты</a></li> }
+                                else if(!_canReadAssessments) { <li><a class="dropdown-item disabled" href="#">Тесты</a></li> }
+                            </ul>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
+                
+                <AuthorizeView Roles="Admin, Moderator">
+                    <Authorized>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                Обучение
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                @if (_canReadCoursesAssignments) { <li><a class="dropdown-item" href="/courses_assignments">Назначение обучения</a></li> }
+                                else if(!_canReadCoursesAssignments) { <li><a class="dropdown-item disabled" href="#">Назначение обучения</a></li> }
+                                
+                                @if (_canReadCoursesEnrollments) { <li><a class="dropdown-item" href="/courses_enrollments">Статистика обучения</a></li> }
+                                else if(!_canReadCoursesEnrollments) { <li><a class="dropdown-item disabled" href="#">Статистика обучения</a></li> }
+                                
+                                @if (_canReadAssessmentsAttempts) { <li><a class="dropdown-item" href="/assessments_attempts">Статистика тестирования</a></li> }
+                                else if(!_canReadAssessmentsAttempts) { <li><a class="dropdown-item disabled" href="#">Статистика тестирования</a></li> }
+                            </ul>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
+                
+                <AuthorizeView Roles="Employee">
+                    <Authorized>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                Обучение
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="#">Моё обучение</a></li>
+                                
+                                <li> <hr class="dropdown-divider"> </li>
+                                
+                                <li><a class="dropdown-item" href="#">Статистика обучения</a></li>
+                                <li><a class="dropdown-item" href="#">Статистика тестирования</a></li>
+                            </ul>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
+                
+
+                <AuthorizeView Roles="Admin, Moderator">
+                    <Authorized>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                Сотрудники
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                
+                                @if (_canReadEmployees) { <li><a class="dropdown-item" href="/employees">Сотрудники</a></li> }
+                                else if(!_canReadEmployees) { <li><a class="dropdown-item disabled" href="#">Сотрудники</a></li> }
+                                
+                                <li> <hr class="dropdown-divider"> </li>
+                                
+                                @if (_canReadEmployeesGroups) { <li><a class="dropdown-item" href="/employee_groups">Группы сотрудников</a></li> }
+                                else if(!_canReadEmployeesGroups) { <li><a class="dropdown-item disabled" href="#">Группы сотрудников</a></li> }
+                                
+                                @if (_canReadGroupMembership) { <li><a class="dropdown-item" href="/group_membership">Назначение сотрудников в группы</a></li> }
+                                else if(!_canReadGroupMembership) { <li><a class="dropdown-item disabled" href="#">Назначение сотрудников в группы</a></li> }
+                                
+                            </ul>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
+            </ul>
+            <div class="d-flex align-items-center">
+                @*<form class="d-flex me-3">
+                    <div class="input-group input-group-sm">
+                        <input class="form-control border-end-0" type="search" placeholder="Найти..." aria-label="Search">
+                        <button class="btn btn-outline-secondary border-start-0" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>*@
+
+                <UserProfileModal/>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="container-fluid p-0">
+    @Body
+</main>
+
+@code {
+
+    # region Есть ли право у пользователя на чтение
+    private bool _canReadAdministrators;
+    private bool _canReadOrganizations;
+    private bool _canReadBranches;
+    private bool _canReadDirectors;
+    private bool _canReadSubscriptions;
+    private bool _canReadModerators;
+    private bool _canReadAuditHistory;
+    
+    private bool _canReadCourses;
+    private bool _canReadMaterials;
+    private bool _canReadAssessments;
+
+    private bool _canReadCoursesAssignments;
+    private bool _canReadCoursesEnrollments;
+    private bool _canReadAssessmentsAttempts;
+    
+    private bool _canReadEmployees;
+    private bool _canReadEmployeesGroups;
+    private bool _canReadGroupMembership;
+    # endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = UserSessionAccessor.UserUuid;
+        if (userId.HasValue)
+        {
+            _canReadAdministrators = await UserPermissions.HasPermission(userId.Value, "administrators", "select");
+            _canReadOrganizations = await UserPermissions.HasPermission(userId.Value, "organizations", "select");
+            _canReadBranches = await UserPermissions.HasPermission(userId.Value, "branches", "select");
+            _canReadSubscriptions = await UserPermissions.HasPermission(userId.Value, "subscriptions", "select");
+            _canReadDirectors = await UserPermissions.HasPermission(userId.Value, "directors", "select");
+            _canReadModerators = await UserPermissions.HasPermission(userId.Value, "moderators", "select");
+            _canReadAuditHistory = await UserPermissions.HasPermission(userId.Value, "audit_history", "select");
+            
+            _canReadCourses = await UserPermissions.HasPermission(userId.Value, "courses", "select");
+            _canReadMaterials = await UserPermissions.HasPermission(userId.Value, "materials", "select");
+            _canReadAssessments = await UserPermissions.HasPermission(userId.Value, "assessments", "select");
+            
+            _canReadCoursesAssignments = await UserPermissions.HasPermission(userId.Value, "courses_assignments", "select");
+            _canReadCoursesEnrollments = await UserPermissions.HasPermission(userId.Value, "courses_enrollments", "select");
+            _canReadAssessmentsAttempts = await UserPermissions.HasPermission(userId.Value, "assessments_attempts", "select");
+            
+            _canReadEmployees = await UserPermissions.HasPermission(userId.Value, "employees", "select");
+            _canReadEmployeesGroups = await UserPermissions.HasPermission(userId.Value, "employees_groups", "select");
+            _canReadGroupMembership = await UserPermissions.HasPermission(userId.Value, "group_memberships", "select");
+        }
+    }
+
+}
+
+<div id="blazor-error-ui" data-nosnippet>
+    Произошла необработанная ошибка на стороне сервера.
+    <a href="." class="reload">Перезагрузить</a>
+    <span class="dismiss">🗙</span>
+</div>

@@ -1,0 +1,139 @@
+@using LMS.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject UserSessionAccessor UserSessionAccessor
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+
+<AuthorizeView>
+    <Authorized>
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" 
+               id="userDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                <div class="profile-avatar bg-primary text-white shadow-sm">
+                    @context.User.Identity?.Name?[..1]?.ToUpper()
+                </div>
+            </a>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 custom-dropdown-width" 
+                aria-labelledby="userDropdown" 
+                @onclick:stopPropagation="true">
+
+                <li class="px-3 py-2">
+                    <div class="fw-bold fs-5">@UserSessionAccessor.UserSurname @UserSessionAccessor.UserName @UserSessionAccessor.UserPatronymic</div>
+                    
+                    <div class="uuid-wrapper mt-1" @onclick="CopyUuidToClipboard" title="Нажмите, чтобы скопировать">
+                        
+                        <small class="text-muted text-break fw-light cursor-pointer">
+                            @UserSessionAccessor.UserUuid?.ToString()
+                        </small>
+
+                        <div class="copy-status @(_showCopyMessage ? "visible" : "")">
+                            <i class="bi bi-check2 me-1"></i> Скопировано в буфер
+                        </div>
+                    </div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                
+                <li><a class="dropdown-item py-2" href="/profile"><i class="bi bi-person me-2"></i>Мой профиль</a></li>
+                <li><a class="dropdown-item py-2" href="/settings"><i class="bi bi-gear me-2"></i>Настройки</a></li>
+                <li><a class="dropdown-item py-2" href="/support"><i class="bi bi-chat-dots me-2"></i>Поддержка</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+
+                    <button class="dropdown-item py-2 text-danger" @onclick="HandleLogout">
+                        <i class="bi bi-box-arrow-right me-2"></i>Выйти
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <a href="/login" class="btn btn-primary btn-sm px-3 shadow-sm">Войти</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+<style>
+    .profile-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .profile-avatar:hover {
+        transform: scale(1.05);
+    }
+    .custom-dropdown-width {
+        min-width: 320px !important;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .uuid-wrapper {
+        position: relative;
+        padding-bottom: 5px;
+        transition: background-color 0.2s;
+        border-radius: 4px;
+    }
+
+    .uuid-wrapper:hover small {
+        color: #0d6efd !important; /* Подсветка при наведении */
+    }
+
+    /* 4. Стили для плавной анимации надписи */
+    .copy-status {
+        font-size: 0.7rem;
+        color: #198754; /* Bootstrap success color */
+        font-weight: 500;
+        opacity: 0;
+        transform: translateY(-5px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        pointer-events: none; /* Чтобы надпись не мешала кликам */
+        position: absolute;
+    }
+
+    .copy-status.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Фикс для длинных UUID, чтобы не вылезали за границы */
+    .text-break {
+        word-break: break-all !important;
+    }
+</style>
+
+@code{
+    private bool _showCopyMessage;
+    
+    private Task HandleLogout()
+    {
+        NavigationManager.NavigateTo("/account/logout", true);
+        return Task.CompletedTask;
+    }
+    
+    private async Task CopyUuidToClipboard()
+    {
+        var uuid = UserSessionAccessor.UserUuid?.ToString();
+        if (string.IsNullOrEmpty(uuid)) return;
+
+        // Используем стандартное браузерное API через JS
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", uuid);
+        
+        _showCopyMessage = true;
+        StateHasChanged();
+
+        // Убираем сообщение через 2 секунды
+        await Task.Delay(2000);
+        _showCopyMessage = false;
+        StateHasChanged();
+    }
+}

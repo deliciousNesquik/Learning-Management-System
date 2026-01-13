@@ -1,0 +1,404 @@
+@using LMS.Components.Shared
+@using LMS.Components.Table
+@using LMS.Interfaces
+@using LMS.Services
+@using LMS.ViewModels.BranchViewModel
+@using LMS.ViewModels.DirectorViewModel
+@using LMS.ViewModels.OrganizationViewModel
+@using Microsoft.AspNetCore.Authorization
+
+@page "/directors"
+@rendermode InteractiveServer
+@inject UserSessionAccessor UserSessionAccessor
+@inject IOrganizationService OrganizationService
+@inject NavigationManager NavigationManager
+@inject UserPermissions UserPermissions
+@inject IDirectorService DirectorService
+@inject IBranchService BranchService
+
+@attribute [Authorize(Roles = "Admin")]
+
+@if (!_isLoaded)
+{
+    <div class="d-flex justify-content-center align-items-center" style="height: 50vh;">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+}
+else if (!canRead)
+{
+    <div class="container mt-5">
+        <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center p-4">
+            <i class="bi bi-shield-lock-fill fs-1 me-4"></i>
+            <div>
+                <h4 class="alert-heading fw-bold">Доступ ограничен</h4>
+                <p class="mb-0">У вас недостаточно прав для просмотра раздела "Директора".</p>
+                <button class="btn btn-outline-danger btn-sm mt-3" @onclick='() => NavigationManager.NavigateTo("/")'>На главную</button>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid px-4 mt-3 animate-fade-in">
+
+        @* Таблица *@
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="mb-0 fw-bold text-secondary">Список всех директоров</h5>
+                    </div>
+                    @if (canInsert)
+                    {
+                        <div class="col-auto">
+                            <button class="btn btn-primary d-flex align-items-center shadow-sm" @onclick="OpenAddModal">
+                                <i class="bi bi-person-plus-fill me-2"></i> Добавить директора
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <GenericTable TItem="DirectorListItemVm"
+                                  Data="page"
+                                  Columns="columns"
+                                  Query="query"
+                                  OnQueryChanged="LoadData"/>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@* 1. СОЗДАНИЕ *@
+@if (_showAddModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold">Новый директор</h5>
+                </div>
+                <EditForm Model="_createModel" OnValidSubmit="HandleCreate">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body p-4">
+                        
+                        @* Поле выбора в модалке создания *@
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Филиалы (выберите один или несколько)</label>
+                            <div class="d-flex flex-wrap gap-2 mb-2 p-2 border rounded bg-light min-vh-10">
+                                @if (_createModel.BranchesUuids == null || !_createModel.BranchesUuids.Any())
+                                {
+                                    <span class="text-muted small">Ничего не выбрано</span>
+                                }
+                                else
+                                {
+                                    @foreach (var id in _createModel.BranchesUuids)
+                                    {
+                                        var branch = allBranches.FirstOrDefault(b => b.Uuid == id);
+                                        <span class="badge bg-primary d-flex align-items-center">
+                                            @branch?.Name
+                                            <button type="button" class="btn-close btn-close-white ms-2" @onclick="() => _createModel.BranchesUuids.Remove(id)"></button>
+                                        </span>
+                                    }
+                                }
+                            </div>
+                            <select class="form-select" @onchange="@((ChangeEventArgs e) => AddBranchToModel(_createModel.BranchesUuids, e))">
+                                <option value="">-- Добавить филиал --</option>
+                                @foreach (var b in allBranches.Where(x => !_createModel.BranchesUuids.Contains(x.Uuid)))
+                                {
+                                    <option value="@b.Uuid">@b.Name</option>
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Должность</label>
+                            <input class="form-control bg-light" @bind="_createModel.Post" placeholder="Должность"/>
+                            <ValidationMessage For="@(() => _createModel.Post)" class="text-danger small"/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Фамилия</label>
+                            <input class="form-control bg-light" @bind="_createModel.Surname" placeholder="Фамилия"/>
+                            <ValidationMessage For="@(() => _createModel.Surname)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Имя</label>
+                            <input class="form-control bg-light" @bind="_createModel.Name" placeholder="Фамилия"/>
+                            <ValidationMessage For="@(() => _createModel.Name)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Отчество</label>
+                            <input class="form-control bg-light" @bind="_createModel.Patronymic" placeholder="Отчество"/>
+                            <ValidationMessage For="@(() => _createModel.Patronymic)" class="text-danger small"/>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer bg-light border-0">
+                        <button type="button" class="btn btn-secondary btn-sm" @onclick="() => _showAddModal = false">Отмена</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4" disabled="@isProcessing">
+                            @if (isProcessing) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                            Создать
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@* 2. РЕДАКТИРОВАНИЕ *@
+@if (_showEditModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Редактирование: @selectedFullName</h5>
+                </div>
+                <EditForm Model="_editModel" OnValidSubmit="HandleUpdate">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body p-4">
+                        
+                        @* Поле выбора в модалке создания *@
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Филиалы (выберите один или несколько)</label>
+                            <div class="d-flex flex-wrap gap-2 mb-2 p-2 border rounded bg-light min-vh-10">
+                                @if (_editModel.BranchesUuids == null || !_editModel.BranchesUuids.Any())
+                                {
+                                    <span class="text-muted small">Ничего не выбрано</span>
+                                }
+                                else
+                                {
+                                    @foreach (var id in _editModel.BranchesUuids)
+                                    {
+                                        var branch = allBranches.FirstOrDefault(b => b.Uuid == id);
+                                        <span class="badge bg-primary d-flex align-items-center">
+                                            @branch?.Name
+                                            <button type="button" class="btn-close btn-close-white ms-2" @onclick="() => _editModel.BranchesUuids.Remove(id)"></button>
+                                        </span>
+                                    }
+                                }
+                            </div>
+                            <select class="form-select" @onchange="@((ChangeEventArgs e) => AddBranchToModel(_editModel.BranchesUuids, e))">
+                                <option value="">-- Добавить филиал --</option>
+                                @foreach (var b in allBranches.Where(x => !_editModel.BranchesUuids.Contains(x.Uuid)))
+                                {
+                                    <option value="@b.Uuid">@b.Name</option>
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Должность</label>
+                            <input class="form-control bg-light" @bind="_editModel.Post" placeholder="Должность"/>
+                            <ValidationMessage For="@(() => _editModel.Post)" class="text-danger small"/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Фамилия</label>
+                            <input class="form-control bg-light" @bind="_editModel.Surname" placeholder="Фамилия"/>
+                            <ValidationMessage For="@(() => _editModel.Surname)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Имя</label>
+                            <input class="form-control bg-light" @bind="_editModel.Name" placeholder="Фамилия"/>
+                            <ValidationMessage For="@(() => _editModel.Name)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Отчество</label>
+                            <input class="form-control bg-light" @bind="_editModel.Patronymic" placeholder="Отчество"/>
+                            <ValidationMessage For="@(() => _editModel.Patronymic)" class="text-danger small"/>
+                        </div>
+                        
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary btn-sm" @onclick="() => _showEditModal = false">Закрыть</button>
+                        <button type="submit" class="btn btn-primary btn-sm" disabled="@isProcessing">Сохранить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+
+<ConfirmDeleteModal 
+    IsVisible="_showDeleteModal"
+    Title="Удалить директора?"
+    ItemName="@selectedFullName"
+    IsProcessing="isProcessing"
+    OnConfirm="HandleDelete"
+    OnCancel="() => _showDeleteModal = false"
+    ErrorMessage="@errorMessage"/>
+
+
+@code {
+    private bool _isLoaded;
+    private bool isProcessing;
+    private bool canRead, canInsert, canUpdate, canDelete;
+    
+    private TableQuery query = new() { PageSize = 10 };
+    private PagedResult<DirectorListItemVm> page = new();
+    private List<TableColumn<DirectorListItemVm>> columns = new();
+    private List<BranchNamesLookupVm> allBranches = new();
+    
+    // Состояния модалок
+    private bool _showAddModal, _showEditModal, _showDeleteModal;
+    
+    // Модели
+    private CreateDirectorVm _createModel = new();
+    private EditDirectorVm _editModel = new();
+    private Guid selectedUuid;
+    private string selectedFullName = "";
+    private bool isSaved;
+    private string? errorMessage;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = UserSessionAccessor.UserUuid;
+        if (userId.HasValue)
+        {
+            canRead = await UserPermissions.HasPermission(userId, "directors", "select");
+            canInsert = await UserPermissions.HasPermission(userId, "directors", "insert");
+            canUpdate = await UserPermissions.HasPermission(userId, "directors", "update");
+            canDelete = await UserPermissions.HasPermission(userId, "directors", "delete");
+        }
+
+        if (canRead)
+        {
+            await LoadInitialData();
+        }
+        _isLoaded = true;
+    }
+
+    private async Task LoadInitialData()
+    {
+        allBranches = await BranchService.GetAllBranchesAsync();
+        DefineTableColumns();
+        await LoadData(query);
+    }
+    
+    private void DefineTableColumns()
+    {
+        columns =
+        [
+            new() { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
+            new() { Title = "Должность", Value = a => a.Post, Sortable = true, SortKey = "post" },
+            new() { Title = "ФИО", Value = a => (a.Surname + " " + a.Name + (a.Patronymic == null ? "" : " " + a.Patronymic)), Sortable = true, SortKey = "full_name" },
+            new() { Title = "Организация", Value = a => a.OrganizationName, Sortable = true, SortKey = "organization_name" },
+            new() { Title = "Филиалы", Value = a => a.BranchesNames, Sortable = true, SortKey = "organization_name" }
+        ];
+        
+        if (canUpdate || canDelete)
+        {
+            columns.Add(new TableColumn<DirectorListItemVm>
+            {
+                Title = "Действия",
+                Sortable = false,
+                Template = director => @<div class="btn-group btn-group-sm">
+                    @if (canUpdate) { <button class="btn btn-outline-primary" @onclick="() => OpenEditModal(director)" title="Редактировать"><i class="bi bi-pencil"></i></button> }
+                    @if (canDelete) { <button class="btn btn-outline-danger" @onclick="() => ConfirmDelete(director)" title="Удалить"><i class="bi bi-trash"></i></button> }
+                </div>
+            });
+        }
+    }
+
+    private async Task LoadData(TableQuery q)
+    {
+        query = q;
+        page = await DirectorService.GetPagedAsync(query);
+    }
+
+    // --- ДЕЙСТВИЯ ---
+    
+    private void AddBranchToModel(List<Guid> list, ChangeEventArgs e)
+    {
+        if (Guid.TryParse(e.Value?.ToString(), out var branchId))
+        {
+            if (!list.Contains(branchId))
+            {
+                list.Add(branchId);
+            }
+        }
+    }
+
+    private void OpenAddModal()
+    {
+        _createModel = new CreateDirectorVm() { BranchesUuids = new List<Guid>() };
+        _showAddModal = true;
+    }
+
+    private async Task HandleCreate()
+    {
+        isProcessing = true;
+        var result = await DirectorService.CreateAsync(_createModel);
+        if (result.IsSuccess)
+        {
+            _showAddModal = false;
+            await LoadInitialData();
+        }
+        isProcessing = false;
+    }
+
+    private void OpenEditModal(DirectorListItemVm mod)
+    {
+        selectedFullName = (mod.Surname + " " + mod.Name + (mod.Patronymic == null ? "" : " " + mod.Patronymic));
+        _editModel = new EditDirectorVm() 
+        { 
+            Uuid = mod.Uuid, 
+            Post = mod.Post,
+            Surname = mod.Surname,
+            Name = mod.Name,
+            Patronymic = mod.Patronymic,
+            BranchesUuids = mod.BranchesUuids,
+        };
+        _showEditModal = true;
+    }
+
+    private async Task HandleUpdate()
+    {
+        isProcessing = true;
+        var result = await DirectorService.UpdateAsync(_editModel);
+        if (result.IsSuccess)
+        {
+            _showEditModal = false;
+            await LoadData(query);
+        }
+        isProcessing = false;
+    }
+
+    private void ConfirmDelete(DirectorListItemVm mod)
+    {
+        selectedUuid = mod.Uuid;
+        selectedFullName = (mod.Surname + " " + mod.Name + (mod.Patronymic == null ? "" : " " + mod.Patronymic));
+        _showDeleteModal = true;
+        errorMessage = null;
+    }
+
+    private async Task HandleDelete()
+    {
+        isProcessing = true;
+        var result = await DirectorService.DeleteAsync(selectedUuid);
+        if (result.IsSuccess)
+        {
+            _showDeleteModal = false;
+            await LoadInitialData();
+        }
+        else
+        {
+            // Выводим текст ошибки из результата сервиса
+            // В зависимости от вашего DeleteUserResult, свойство может называться Message или Error
+            errorMessage = result.ErrorCode; 
+        }
+        isProcessing = false;
+    }
+    
+}

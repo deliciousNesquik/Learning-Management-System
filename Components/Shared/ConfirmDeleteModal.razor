@@ -1,0 +1,56 @@
+@if (IsVisible)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); z-index: 1050;">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-body text-center p-4">
+                    <div class="text-danger mb-3">
+                        <i class="bi bi-exclamation-triangle fs-1"></i>
+                    </div>
+                    
+                    <h5 class="fw-bold">@Title</h5>
+                    <p class="text-muted small">
+                        Вы собираетесь удалить <b>@ItemName</b>. <br />
+                        Это действие нельзя отменить.
+                    </p>
+
+                    @* --- БЛОК ОШИБКИ --- *@
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <div class="alert alert-danger small py-2" role="alert">
+                            <i class="bi bi-x-circle me-2"></i> @ErrorMessage
+                        </div>
+                    }
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button class="btn btn-danger fw-bold shadow-sm" 
+                                @onclick="OnConfirm" 
+                                disabled="@IsProcessing">
+                            @if (IsProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                            }
+                            Удалить
+                        </button>
+                        <button class="btn btn-light" 
+                                @onclick="OnCancel" 
+                                disabled="@IsProcessing">
+                            Отмена
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string Title { get; set; } = "Удалить запись?";
+    [Parameter] public string ItemName { get; set; } = "";
+    [Parameter] public bool IsProcessing { get; set; }
+    [Parameter] public string? ErrorMessage { get; set; } // Новое поле для текста ошибки
+    
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

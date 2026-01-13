@@ -1,0 +1,517 @@
+@page "/administrators"
+@using LMS.Components.Shared
+@using LMS.Components.Table
+@using LMS.Interfaces
+@using LMS.Models.UserManipulationResult
+@using LMS.Services
+@using LMS.ViewModels
+@using LMS.ViewModels.AdminViewModel
+@using Microsoft.AspNetCore.Authorization
+@inject IAdminService AdminService
+@inject UserPermissions UserPermissions
+@inject UserSessionAccessor UserSessionAccessor
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+@attribute [Authorize(Roles = "Admin")]
+
+@if (!isLoaded)
+{
+    <div class="d-flex justify-content-center align-items-center" style="height: 50vh;">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+}
+else if (!canRead)
+{
+    <div class="container mt-5">
+        <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center p-4">
+            <i class="bi bi-shield-lock-fill fs-1 me-4"></i>
+            <div>
+                <h4 class="alert-heading fw-bold">Доступ ограничен</h4>
+                <p class="mb-0">У вас недостаточно прав для просмотра раздела "Администраторы". Обратитесь к системному администратору.</p>
+                <button class="btn btn-outline-danger btn-sm mt-3" @onclick='() => NavigationManager.NavigateTo("/")'>На главную</button>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid px-4 mt-3 animate-fade-in">
+        @* Статистика *@
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 border-start border-primary border-4 shadow-sm bg-white h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted small fw-bold text-uppercase">Всего администраторов</h6>
+                        <h3 class="mb-0">@TotalCount</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 border-start border-success border-4 shadow-sm bg-white h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted small fw-bold text-uppercase text-success">Активных</h6>
+                        <h3 class="mb-0 text-success">@ActiveCount</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 border-start border-warning border-4 shadow-sm bg-white h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted small fw-bold text-uppercase text-warning">Заблокированных</h6>
+                        <h3 class="mb-0 text-warning">@BlockCount</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Таблица *@
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="mb-0 fw-bold text-secondary">Список учетных записей</h5>
+                    </div>
+                    @if (canInsert)
+                    {
+                        <div class="col-auto">
+                            <button class="btn btn-primary d-flex align-items-center shadow-sm" @onclick="OpenAddModal">
+                                <i class="bi bi-person-plus-fill me-2"></i> Добавить администратора
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <GenericTable TItem="AdminListItemVm"
+                                  Data="pagedAdmins"
+                                  Columns="columns"
+                                  Query="query"
+                                  OnQueryChanged="LoadData"/>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@* МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ *@
+@if (showModal && canInsert)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header @(isSaved ? "bg-success" : "bg-primary") text-white border-0">
+                    <h5 class="modal-title w-100 text-center fw-bold">
+                        <i class="bi @(isSaved ? "bi-shield-check" : "bi-person-plus-fill") me-2"></i>
+                        @(isSaved ? "Данные созданы" : "Новый администратор")
+                    </h5>
+                </div>
+                @if (!isSaved)
+                {
+                    <EditForm Model="@newAdminModel" OnValidSubmit="HandleSave">
+                        <DataAnnotationsValidator/>
+                        <div class="modal-body p-4">
+                            @*@if (!string.IsNullOrEmpty(errorMessage))
+                            {
+                                <div class="alert alert-danger border-0 small d-flex align-items-center">
+                                    <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i> @errorMessage
+                                </div>
+                            }*@
+                            
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small text-muted">ЛОГИН</label>
+                                <div class="input-group custom-input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-person text-primary"></i></span>
+                                    <InputText @bind-Value="newAdminModel.Login" class="form-control border-start-0" placeholder="Логин"/>
+                                </div>
+                                <ValidationMessage For="@(() => newAdminModel.Login)" class="text-danger small"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">ПАРОЛЬ</label>
+                                <div class="input-group custom-input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-key text-primary"></i></span>
+                                    <InputText @bind-Value="newAdminModel.PlainPassword" class="form-control border-start-0" placeholder="Пароль"/>
+                                </div>
+                                <ValidationMessage For="@(() => newAdminModel.PlainPassword)" class="text-danger small"/>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">Фамилия</label>
+                                <InputText @bind-Value="newAdminModel.Surname" class="form-control"/>
+                                <ValidationMessage For="@(() => newAdminModel.Surname)"/>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">Имя</label>
+                                <InputText @bind-Value="newAdminModel.Name" class="form-control"/>
+                                <ValidationMessage For="@(() => newAdminModel.Name)"/>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">Отчество</label>
+                                <InputText @bind-Value="newAdminModel.Patronymic" class="form-control"/>
+                                <ValidationMessage For="@(() => newAdminModel.Patronymic)"/>
+                            </div>
+                            
+                            
+                            @* --- БЛОК ОШИБКИ --- *@
+                            @if (!string.IsNullOrEmpty(errorMessage))
+                            {
+                                <div class="alert alert-danger small py-2" role="alert">
+                                    <i class="bi bi-x-circle me-2"></i> @errorMessage
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="modal-footer bg-light border-0 justify-content-center p-3">
+                            <button type="button" class="btn btn-outline-secondary px-4" @onclick="CloseAddModal">Отмена</button>
+                            
+                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm" disabled="@isProcessing">
+                                @if (isProcessing) { <span class="spinner-border spinner-border-sm me-2"></span> } Сохранить
+                            </button>
+                        </div>
+                    </EditForm>
+                }
+                else
+                {
+                    <div class="modal-body p-4">
+                        <div class="alert alert-warning border-0 small mb-4">
+                            <strong>Внимание:</strong> Сохраните эти данные сейчас.
+                        </div>
+                        <div class="list-group list-group-flush border rounded shadow-sm">
+                            <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                <div><small class="text-muted d-block">Логин</small><span class="fw-bold">@newAdminModel.Login</span></div>
+                                <button class="btn btn-sm btn-light border" @onclick='() => CopyToClipboard(newAdminModel.Login)'><i class="bi bi-clipboard"></i></button>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                <div><small class="text-muted d-block">Пароль</small><code class="fw-bold">@newAdminModel.PlainPassword</code></div>
+                                <button class="btn btn-sm btn-light border" @onclick='() => CopyToClipboard(newAdminModel.PlainPassword)'><i class="bi bi-clipboard"></i></button>
+                            </div>
+                        </div>
+                        <button class="btn btn-success w-100 mt-4 fw-bold" @onclick="CloseAddModal">Готово</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@* МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ *@
+@if (showEditModal && editingAdminVm != null && canUpdate)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title w-100 text-center fw-bold">Редактирование: @editingAdminVm.Login</h5>
+                </div>
+                <EditForm Model="@editingAdminVm" OnValidSubmit="HandleUpdate">
+                    <DataAnnotationsValidator/>
+                    <div class="modal-body p-4">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">ЛОГИН</label>
+                            <InputText @bind-Value="editingAdminVm.Login" class="form-control"/>
+                            <ValidationMessage For="@(() => editingAdminVm.Login)"/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Фамилия</label>
+                            <InputText @bind-Value="editingAdminVm.Surname" class="form-control"/>
+                            <ValidationMessage For="@(() => editingAdminVm.Surname)"/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Имя</label>
+                            <InputText @bind-Value="editingAdminVm.Name" class="form-control"/>
+                            <ValidationMessage For="@(() => editingAdminVm.Name)"/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Отчество</label>
+                            <InputText @bind-Value="editingAdminVm.Patronymic" class="form-control"/>
+                            <ValidationMessage For="@(() => editingAdminVm.Patronymic)"/>
+                        </div>
+
+                        <div class="form-check form-switch">
+                            <label class="form-check-label" for="editActive">Возможность пользоваться платформой</label>
+                            <InputCheckbox @bind-Value="editingAdminVm.IsActive" class="form-check-input" id="editActive"/>
+                        </div>
+
+                        @* --- БЛОК ОШИБКИ --- *@
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger small py-2" role="alert">
+                                <i class="bi bi-x-circle me-2"></i> @errorMessage
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light" @onclick="() => showEditModal = false">Отмена</button>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold" disabled="@isProcessing">Сохранить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@* МОДАЛЬНОЕ ОКНО СБРОСА ПАРОЛЯ *@
+@if (showResetModal && canUpdate)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white border-0 text-center">
+                    <h5 class="modal-title w-100 fw-bold"><i class="bi bi-key me-2"></i> Сброс пароля</h5>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    @if (!isSaved)
+                    {
+                        <p class="text-muted">Введите новый пароль для пользователя:</p>
+                        <input type="text" @bind="plainPassword" class="form-control form-control-lg text-center fw-bold" placeholder="••••••••"/>
+                        <div class="d-flex justify-content-center mt-4 gap-2">
+                            <button class="btn btn-light px-4" @onclick="() => showResetModal = false">Отмена</button>
+                            <button class="btn btn-primary px-4 fw-bold" @onclick="HandleResetPassword" disabled="@(string.IsNullOrEmpty(plainPassword))">Обновить</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <i class="bi bi-check-circle text-success fs-1"></i>
+                        <p class="mt-2 fw-bold">Пароль успешно обновлен!</p>
+                        <div class="p-3 bg-light border rounded mb-3"><code>@plainPassword</code></div>
+                        <button class="btn btn-dark w-100" @onclick="() => showResetModal = false">Закрыть</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<ConfirmDeleteModal 
+    IsVisible="showDeleteModal"
+    Title="Удалить администратора?"
+    ItemName="@deleteAdminLogin"
+    IsProcessing="isProcessing"
+    OnConfirm="HandleDelete"
+    OnCancel="() => showDeleteModal = false"
+    ErrorMessage="@errorMessage"/>
+
+<UserPermissionsModal 
+    Show="showPermsModal"
+    UserLogin="@selectedAdminLogin"
+    Permissions="@adminPermissions"
+    OnClose="() => showPermsModal = false"
+    OnSave="SavePermissions"
+    IsProcessing="isProcessing" />
+
+<style>
+    .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
+    @@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .custom-input-group:focus-within { box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15); border-radius: 0.375rem; }
+    .text-monospace { font-family: 'SFMono-Regular', Consolas, monospace; letter-spacing: 1px; }
+</style>
+
+@code {
+    private TableQuery query = new();
+    private PagedResult<AdminListItemVm> pagedAdmins = new();
+    private EditAdminVm? editingAdminVm;
+    private CreateAdminVm? newAdminModel = new();
+    private List<TableColumn<AdminListItemVm>> columns = new();
+    
+    // Флаги состояния и прав
+    private bool isLoaded;
+    private bool canRead, canInsert, canUpdate, canDelete;
+    private bool isSaved, isProcessing, showModal, showEditModal, showResetModal, showDeleteModal, showPermsModal;
+    
+    private string? errorMessage, plainPassword, selectedAdminLogin, deleteAdminLogin;
+    private Guid selectedAdminUuid, resetAdminUuid, deleteAdminUuid;
+    private int TotalCount, ActiveCount, BlockCount;
+    private List<TablePermissionVm> adminPermissions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = UserSessionAccessor.UserUuid;
+        if (userId.HasValue)
+        {
+            // Загружаем права асинхронно
+            canRead = await UserPermissions.HasPermission(userId.Value, "administrators", "select");
+            canUpdate = await UserPermissions.HasPermission(userId.Value, "administrators", "update");
+            canInsert = await UserPermissions.HasPermission(userId.Value, "administrators", "insert");
+            canDelete = await UserPermissions.HasPermission(userId.Value, "administrators", "delete");
+
+            if (canRead)
+            {
+                DefineTableColumns();
+                await LoadData(query);
+                await LoadStats();
+            }
+        }
+        isLoaded = true;
+    }
+
+    private void DefineTableColumns()
+    {
+        columns = new List<TableColumn<AdminListItemVm>>
+        {
+            new() { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
+            new() { Title = "Логин", Value = a => a.Login, Sortable = true, SortKey = "login" },
+            new() { Title = "Статус", Value = a => a.IsActive ? "Активен" : "Заблокирован", Sortable = true, SortKey = "is_active" },
+            new() { Title = "Дата создания", Value = a => a.CreatedAt.ToString("dd.MM.yyyy HH:mm"), Sortable = true, SortKey = "created_at" },
+            new() { Title = "Фамилия", Value = a => a.Surname, Sortable = true, SortKey = "surname" },
+            new() { Title = "Имя", Value = a => a.Name, Sortable = true, SortKey = "name" },
+            new() { Title = "Отчество", Value = a => a.Patronymic, Sortable = true, SortKey = "patronymic" },
+        };
+
+        // Добавляем колонку действий ТОЛЬКО если есть хоть одно право на изменение
+        if (canUpdate || canDelete)
+        {
+            columns.Add(new TableColumn<AdminListItemVm>
+            {
+                Title = "Действия",
+                Sortable = false,
+                Template = admin => @<div class="btn-group btn-group-sm">
+                                        @if (canUpdate)
+                                        {
+                                            <button class="btn btn-outline-primary" @onclick="() => OpenEditModal(admin)" title="Редактировать"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-outline-info" @onclick="() => OpenPermissions(admin)" title="Права"><i class="bi bi-shield-lock"></i></button>
+                                            <button class="btn btn-outline-secondary" @onclick="() => OpenResetPassword(admin)" title="Пароль"><i class="bi bi-key"></i></button>
+                                        }
+                                        @if (canDelete)
+                                        {
+                                            <button class="btn btn-outline-danger" @onclick="() => ConfirmDelete(admin)" title="Удалить"><i class="bi bi-trash"></i></button>
+                                        }
+                                    </div>
+            });
+        }
+    }
+
+    private async Task LoadData(TableQuery q)
+    {
+        if (!canRead) return;
+        query = q;
+        pagedAdmins = await AdminService.GetPagedAsync(query);
+    }
+
+    private async Task LoadStats()
+    {
+        if (!canRead) return;
+        var stats = await AdminService.GetStatsAsync();
+        TotalCount = stats.Total;
+        ActiveCount = stats.Active;
+        BlockCount = stats.Blocked;
+    }
+
+    // --- ДОБАВЛЕНИЕ (с проверкой прав) ---
+    private void OpenAddModal() { if (!canInsert) return; newAdminModel = new(); errorMessage = null; isSaved = false; showModal = true; }
+    
+    private async Task HandleSave()
+    {
+        if (!canInsert) return;
+        isProcessing = true; errorMessage = null;
+        try
+        {
+            var result = await AdminService.CreateAsync(newAdminModel);
+            if (result.IsSuccess)
+            {
+                isSaved = true; await LoadData(query); await LoadStats();
+            }
+            else
+            {
+                errorMessage = result.ErrorCode;
+            }
+        }
+        catch { errorMessage = "Сбой сервера."; }
+        finally { isProcessing = false; }
+    }
+
+    // --- РЕДАКТИРОВАНИЕ (с проверкой прав) ---
+    private void OpenEditModal(AdminListItemVm admin)
+    {
+        Console.WriteLine("открыл");
+        if (!canUpdate) return;
+        editingAdminVm = new EditAdminVm
+        {
+            Uuid = admin.Uuid, 
+            Login = admin.Login, 
+            IsActive = admin.IsActive, 
+            Surname = admin.Surname, 
+            Name = admin.Name, 
+            Patronymic = admin.Patronymic
+        };
+        showEditModal = true;
+    }
+
+    private async Task HandleUpdate()
+    {
+        Console.WriteLine("сохраняю");
+        if (!canUpdate || editingAdminVm == null) return;
+        isProcessing = true;
+
+        Console.WriteLine("сохраняю в сервис");
+        var result = await AdminService.UpdateAsync(editingAdminVm);
+        if (result.IsSuccess)
+        {
+            showEditModal = false;
+            await LoadData(query); await LoadStats();
+            isProcessing = false;
+        }
+        else
+        {
+            errorMessage = result.ErrorCode;
+            isProcessing = false;
+        }
+        
+    }
+
+    // --- СБРОС ПАРОЛЯ ---
+    private void OpenResetPassword(AdminListItemVm admin) { if (canUpdate) { resetAdminUuid = admin.Uuid; plainPassword = ""; isSaved = false; showResetModal = true; } }
+    private async Task HandleResetPassword() { if (!canUpdate || string.IsNullOrWhiteSpace(plainPassword)) return; isProcessing = true; await AdminService.ResetPasswordAsync(resetAdminUuid, plainPassword); isSaved = true; isProcessing = false; }
+
+    // --- УДАЛЕНИЕ ---
+    
+    private async Task HandleDelete()
+    {
+        errorMessage = null; // Сбрасываем старую ошибку перед началом
+        isProcessing = true;
+        
+        var result = await AdminService.DeleteAsync(selectedAdminUuid);
+        
+        if (result.IsSuccess)
+        {
+            showDeleteModal = false;
+            await LoadData(query); // Обновляем таблицу
+        }
+        else
+        {
+            // Выводим текст ошибки из результата сервиса
+            // В зависимости от вашего DeleteUserResult, свойство может называться Message или Error
+            errorMessage = result.ErrorCode; 
+        }
+        
+        isProcessing = false;
+    }
+    
+    private void ConfirmDelete(AdminListItemVm admin)
+    {
+        if (canDelete)
+        {
+            deleteAdminUuid = admin.Uuid;
+            deleteAdminLogin = admin.Login;
+            showDeleteModal = true;
+            errorMessage = null;
+        }
+    }
+    
+
+    // --- ПРАВА ---
+    private async Task OpenPermissions(AdminListItemVm admin) { if (canUpdate) { selectedAdminLogin = admin.Login; selectedAdminUuid = admin.Uuid; adminPermissions = await UserPermissions.GetPermissionsAsync(admin.Uuid, true); showPermsModal = true; } }
+    private async Task SavePermissions(List<TablePermissionVm> perms) { if (!canUpdate) return; isProcessing = true; await UserPermissions.UpdatePermissionsAsync(selectedAdminUuid, perms); showPermsModal = false; isProcessing = false; }
+
+    private async Task CopyToClipboard(string text) => await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    private void CloseAddModal() { showModal = false; isSaved = false; }
+}

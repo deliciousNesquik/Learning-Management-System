@@ -1,0 +1,456 @@
+@using LMS.Components.Shared
+@using LMS.Components.Table
+@using LMS.Data.Models
+@using LMS.Interfaces
+@using LMS.Services
+@using LMS.ViewModels.OrganizationViewModel
+@using Microsoft.AspNetCore.Authorization
+
+@page "/organizations"
+@rendermode InteractiveServer
+
+@inject UserSessionAccessor UserSessionAccessor
+@inject IOrganizationService OrganizationService
+@inject NavigationManager NavigationManager
+@inject UserPermissions UserPermissions
+
+@attribute [Authorize(Roles = "Admin")]
+
+@if (!_isLoaded)
+{
+    <div class="d-flex justify-content-center align-items-center" style="height: 50vh;">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+}
+else if (!_canRead)
+{
+    <div class="container mt-5">
+        <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center p-4">
+            <i class="bi bi-shield-lock-fill fs-1 me-4"></i>
+            <div>
+                <h4 class="alert-heading fw-bold">Доступ ограничен</h4>
+                <p class="mb-0">У вас недостаточно прав для просмотра раздела "Организации".</p>
+                <button class="btn btn-outline-danger btn-sm mt-3" @onclick='() => NavigationManager.NavigateTo("/")'>На главную</button>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid px-4 mt-3 animate-fade-in">
+
+        @* Таблица *@
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="mb-0 fw-bold text-secondary">Список всех организаций</h5>
+                    </div>
+                    @if (_canInsert)
+                    {
+                        <div class="col-auto">
+                            <button class="btn btn-primary d-flex align-items-center shadow-sm" @onclick="OpenAddModal">
+                                <i class="bi bi-person-plus-fill me-2"></i> Добавить организацию
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <GenericTable TItem="OrganizationListItemVm"
+                                  Data="_page"
+                                  Columns="columns"
+                                  Query="_query"
+                                  OnQueryChanged="LoadData"/>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@* 1. СОЗДАНИЕ *@
+@if (_showAddModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold">Новая организация</h5>
+                </div>
+                <EditForm Model="_createModel" OnValidSubmit="HandleCreate">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body p-4">
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Правовая форма</label>
+                            <InputSelect @bind-Value="_createModel.LegalFormUuid" class="form-select bg-light">
+                                <option value="">-- Выберите форму --</option>
+                                @if (orgList != null)
+                                {
+                                    @foreach (var form in orgList)
+                                    {
+                                        <option value="@form.Uuid">@form.Name</option>
+                                    }
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => _createModel.LegalFormUuid)" class="text-danger small" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Название</label>
+                            <input class="form-control bg-light" @bind="_createModel.Name" placeholder="Название"/>
+                            <ValidationMessage For="@(() => _createModel.Name)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Почта</label>
+                            <input class="form-control bg-light" @bind="_createModel.Mail" placeholder="Почта организации"/>
+                            <ValidationMessage For="@(() => _createModel.Mail)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Контакты</label>
+                            <input class="form-control bg-light" @bind="_createModel.Contacts" placeholder="Контакты организации"/>
+                            <ValidationMessage For="@(() => _createModel.Contacts)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">ИНН</label>
+                            <input class="form-control bg-light" @bind="_createModel.TaxPayer" placeholder="ИНН организации"/>
+                            <ValidationMessage For="@(() => _createModel.TaxPayer)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">№ лицензии</label>
+                            <input class="form-control bg-light" @bind="_createModel.LicenseNumber" placeholder="Номер лицензии"/>
+                            <ValidationMessage For="@(() => _createModel.LicenseNumber)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Дата начала лицензии</label>
+                            <input class="form-control bg-light" @bind="_createModel.LicenseValidFrom" placeholder="Дата начала лицензии"/>
+                            <ValidationMessage For="@(() => _createModel.LicenseNumber)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Дата окончания лицензии</label>
+                            <input class="form-control bg-light" @bind="_createModel.LicenseValidTo" placeholder="Дата окончания лицензии"/>
+                            <ValidationMessage For="@(() => _createModel.LicenseValidTo)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Регион / Область / Республика</label>
+                            <input class="form-control bg-light" @bind="_createModel.Region" placeholder="Регион / Область / Республика"/>
+                            <ValidationMessage For="@(() => _createModel.Region)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Город</label>
+                            <input class="form-control bg-light" @bind="_createModel.City" placeholder="Город"/>
+                            <ValidationMessage For="@(() => _createModel.City)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Улица</label>
+                            <input class="form-control bg-light" @bind="_createModel.Street" placeholder="Улица"/>
+                            <ValidationMessage For="@(() => _createModel.Street)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Номер дома</label>
+                            <input class="form-control bg-light" @bind="_createModel.HouseNumber" placeholder="Номер дома"/>
+                            <ValidationMessage For="@(() => _createModel.HouseNumber)" class="text-danger small"/>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer bg-light border-0">
+                        <button type="button" class="btn btn-secondary btn-sm" @onclick="() => _showAddModal = false">Отмена</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4" disabled="@isProcessing">
+                            @if (isProcessing) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                            Создать
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@* 2. РЕДАКТИРОВАНИЕ *@
+@if (_showEditModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold">Редактирование: @selectedName</h5>
+                </div>
+                <EditForm Model="_editModel" OnValidSubmit="HandleUpdate">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body p-4">
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Правовая форма</label>
+                            <InputSelect @bind-Value="_editModel.LegalFormUuid" class="form-select bg-light">
+                                <option value="">-- Выберите форму --</option>
+                                @foreach (var form in orgList)
+                                {
+                                    <option value="@form.Uuid">@form.Name</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => _createModel.LegalFormUuid)" class="text-danger small" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Название</label>
+                            <input class="form-control bg-light" @bind="_editModel.Name" placeholder="Название"/>
+                            <ValidationMessage For="@(() => _editModel.Name)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Почта</label>
+                            <input class="form-control bg-light" @bind="_editModel.Mail" placeholder="Почта организации"/>
+                            <ValidationMessage For="@(() => _editModel.Mail)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Контакты</label>
+                            <input class="form-control bg-light" @bind="_editModel.Contacts" placeholder="Контакты организации"/>
+                            <ValidationMessage For="@(() => _editModel.Contacts)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">ИНН</label>
+                            <input class="form-control bg-light" @bind="_editModel.TaxPayer" placeholder="ИНН организации"/>
+                            <ValidationMessage For="@(() => _editModel.TaxPayer)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">№ лицензии</label>
+                            <input class="form-control bg-light" @bind="_editModel.LicenseNumber" placeholder="Номер лицензии"/>
+                            <ValidationMessage For="@(() => _editModel.LicenseNumber)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Дата начала лицензии</label>
+                            <input class="form-control bg-light" @bind="_editModel.LicenseValidFrom" placeholder="Дата начала лицензии"/>
+                            <ValidationMessage For="@(() => _editModel.LicenseNumber)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Дата окончания лицензии</label>
+                            <input class="form-control bg-light" @bind="_editModel.LicenseValidTo" placeholder="Дата окончания лицензии"/>
+                            <ValidationMessage For="@(() => _editModel.LicenseValidTo)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Регион / Область / Республика</label>
+                            <input class="form-control bg-light" @bind="_editModel.Region" placeholder="Регион / Область / Республика"/>
+                            <ValidationMessage For="@(() => _editModel.Region)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Город</label>
+                            <input class="form-control bg-light" @bind="_editModel.City" placeholder="Город"/>
+                            <ValidationMessage For="@(() => _editModel.City)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Улица</label>
+                            <input class="form-control bg-light" @bind="_editModel.Street" placeholder="Улица"/>
+                            <ValidationMessage For="@(() => _editModel.Street)" class="text-danger small"/>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Номер дома</label>
+                            <input class="form-control bg-light" @bind="_editModel.HouseNumber" placeholder="Номер дома"/>
+                            <ValidationMessage For="@(() => _editModel.HouseNumber)" class="text-danger small"/>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer bg-light border-0">
+                        <button type="button" class="btn btn-secondary btn-sm" @onclick="() => _showEditModal = false">Отмена</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4" disabled="@isProcessing">
+                            @if (isProcessing) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                            Сохранить
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+<ConfirmDeleteModal 
+    IsVisible="_showDeleteModal"
+    Title="Удалить модератора?"
+    ItemName="@selectedName"
+    IsProcessing="isProcessing"
+    OnConfirm="HandleDelete"
+    OnCancel="() => _showDeleteModal = false"
+    ErrorMessage="@errorMessage"/>
+
+@code {
+    private bool _isLoaded;
+    private bool isProcessing;
+    private bool _canRead, _canInsert, _canUpdate, _canDelete;
+    
+    private TableQuery _query = new() { PageSize = 10 };
+    private PagedResult<OrganizationListItemVm> _page = new();
+    public List<TableColumn<OrganizationListItemVm>> columns = new();
+    private List<LegalFormLookupVm> orgList = new();
+    
+    // Состояния модалок
+    private bool _showAddModal, _showEditModal, _showDeleteModal;
+    
+    // Модели
+    private CreateOrganizationVm _createModel = new();
+    private EditOrganizationVm _editModel = new();
+    private Guid _selectedUuid;
+    private string selectedName = "";
+    private bool isSaved;
+    private string? errorMessage;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = UserSessionAccessor.UserUuid;
+        if (userId.HasValue)
+        {
+            _canRead = await UserPermissions.HasPermission(userId, "organizations", "select");
+            _canInsert = await UserPermissions.HasPermission(userId, "organizations", "insert");
+            _canUpdate = await UserPermissions.HasPermission(userId, "organizations", "update");
+            _canDelete = await UserPermissions.HasPermission(userId, "organizations", "delete");
+        }
+
+        if (_canRead)
+        {
+            await LoadInitialData();
+        }
+        _isLoaded = true;
+    }
+
+    private async Task LoadInitialData()
+    {
+        // Загружаем список организаций для выпадающего списка
+        orgList = await OrganizationService.GetLegalFormsAsync();
+        DefineTableColumns();
+        await LoadData(_query);
+    }
+    
+    private void DefineTableColumns()
+    {
+        columns =
+        [
+            new() { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
+            new() { Title = "Форма организации", Value = a => a.LegalFormName, Sortable = true, SortKey = "legal_form" },
+            new() { Title = "Название", Value = a => a.Name, Sortable = true, SortKey = "name" },
+            new() { Title = "ИНН", Value = a => a.Taxpayer, Sortable = true, SortKey = "taxpayer" },
+            new() { Title = "Почта", Value = a => a.Mail, Sortable = true, SortKey = "mail" },
+            new() { Title = "Контакты", Value = a => a.Contacts, Sortable = true, SortKey = "contacts" },
+            new() { Title = "Регион", Value = a => a.Region, Sortable = true, SortKey = "region" },
+            new() { Title = "Город", Value = a => a.City, Sortable = true, SortKey = "city" },
+            new() { Title = "Улица", Value = a => a.Street, Sortable = true, SortKey = "street" },
+            new() { Title = "Дом", Value = a => a.HouseNumber, Sortable = true, SortKey = "house_number" },
+            new() { Title = "Кол-во филиалов", Value = a => a.CountBranches, Sortable = true, SortKey = "count_branches" },
+            
+        ];
+        
+        if (_canUpdate || _canDelete)
+        {
+            columns.Add(new TableColumn<OrganizationListItemVm>
+            {
+                Title = "Действия",
+                Sortable = false,
+                Template = organization => @<div class="btn-group btn-group-sm">
+                    @if (_canUpdate) { <button class="btn btn-outline-primary" @onclick="() => OpenEditModal(organization)" title="Редактировать"><i class="bi bi-pencil"></i></button> }
+                    @if (_canDelete) { <button class="btn btn-outline-danger" @onclick="() => ConfirmDelete(organization)" title="Удалить"><i class="bi bi-trash"></i></button> }
+                </div>
+            });
+        }
+    }
+
+    private async Task LoadData(TableQuery q)
+    {
+        _query = q;
+        _page = await OrganizationService.GetPagedAsync(_query);
+    }
+    
+    // --- ДЕЙСТВИЯ ---
+    
+    private void OpenAddModal()
+    {
+        _createModel = new CreateOrganizationVm() {};
+        _showAddModal = true;
+    }
+    
+    private async Task HandleCreate()
+    {
+        isProcessing = true;
+        var result = await OrganizationService.CreateAsync(_createModel);
+        if (result.IsSuccess)
+        {
+            _showAddModal = false;
+            await LoadInitialData();
+        }
+        isProcessing = false;
+    }
+
+    private void OpenEditModal(OrganizationListItemVm mod)
+    {
+        selectedName = mod.Name;
+        _editModel = new EditOrganizationVm() 
+        { 
+            Uuid = mod.Uuid,
+            Name = mod.Name,
+            Mail = mod.Mail,
+            Contacts = mod.Contacts,
+            TaxPayer = mod.Taxpayer,
+            LegalFormUuid = mod.LegalFormUuid,
+            Region = mod.Region,
+            City = mod.City,
+            Street = mod.Street,
+            HouseNumber = mod.HouseNumber
+        };
+        _showEditModal = true;
+    }
+
+    private async Task HandleUpdate()
+    {
+        isProcessing = true;
+        var result = await OrganizationService.UpdateAsync(_editModel);
+        if (result.IsSuccess)
+        {
+            _showEditModal = false;
+            await LoadData(_query);
+        }
+        isProcessing = false;
+    }
+
+    private void ConfirmDelete(OrganizationListItemVm mod)
+    {
+        _selectedUuid = mod.Uuid;
+        selectedName = mod.Name;
+        _showDeleteModal = true;
+        errorMessage = null;
+    }
+
+    private async Task HandleDelete()
+    {
+        isProcessing = true;
+        var result = await OrganizationService.DeleteAsync(_selectedUuid);
+        if (result.IsSuccess)
+        {
+            _showDeleteModal = false;
+            await LoadInitialData();
+        }
+        else
+        {
+            // Выводим текст ошибки из результата сервиса
+            // В зависимости от вашего DeleteUserResult, свойство может называться Message или Error
+            errorMessage = result.ErrorCode; 
+        }
+        isProcessing = false;
+    }
+}

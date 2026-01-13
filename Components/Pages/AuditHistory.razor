@@ -1,0 +1,111 @@
+@using LMS.Components.Table
+@using LMS.Interfaces
+@using LMS.Services
+@using LMS.ViewModels.AuditHistoryViewModel
+@using Microsoft.AspNetCore.Authorization
+
+@inject UserSessionAccessor UserSessionAccessor
+@inject NavigationManager NavigationManager
+@inject UserPermissions UserPermissions
+@inject IAuditHistoryService AuditHistoryService
+
+@page "/auditHistory"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+
+
+@if (!_isLoaded)
+{
+    <div class="d-flex justify-content-center align-items-center" style="height: 50vh;">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+}
+else if (!_canRead)
+{
+    <div class="container mt-5">
+        <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center p-4">
+            <i class="bi bi-shield-lock-fill fs-1 me-4"></i>
+            <div>
+                <h4 class="alert-heading fw-bold">Доступ ограничен</h4>
+                <p class="mb-0">У вас недостаточно прав для просмотра раздела "История изменения БД". Обратитесь к системному администратору.</p>
+                <button class="btn btn-outline-danger btn-sm mt-3" @onclick='() => NavigationManager.NavigateTo("/")'>На главную</button>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid px-4 mt-3 animate-fade-in">
+        @* Таблица *@
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="mb-0 fw-bold text-secondary">Список изменений в базе</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <GenericTable TItem="AuditHistoryListItemVm"
+                                  Data="_page"
+                                  Columns="_columns"
+                                  Query="_query"
+                                  OnQueryChanged="LoadData"/>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+
+@code {
+    private TableQuery _query = new();
+    private PagedResult<AuditHistoryListItemVm> _page = new();
+    private List<TableColumn<AuditHistoryListItemVm>> _columns = [];
+    
+    
+    // Флаги состояния и прав
+    private bool _isLoaded;
+    private bool _canRead;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = UserSessionAccessor.UserUuid;
+        if (userId.HasValue)
+        {
+            _canRead = await UserPermissions.HasPermission(userId.Value, "audit_history", "select");
+
+            if (_canRead)
+            {
+                DefineTableColumns();
+                await LoadData(_query);
+            }
+        }
+        _isLoaded = true;
+    }
+
+    private void DefineTableColumns()
+    {
+        _columns =
+        [
+            new TableColumn<AuditHistoryListItemVm> { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
+            new TableColumn<AuditHistoryListItemVm> { Title = "Имя таблицы", Value = a => a.TableName, Sortable = true, SortKey = "table_name" },
+            new TableColumn<AuditHistoryListItemVm> { Title = "UUID записи", Value = a => a.RecordUuid.ToString(), Sortable = true, SortKey = "record_uuid" },
+            new TableColumn<AuditHistoryListItemVm> { Title = "Действие", Value = a => a.Action.ToString(), Sortable = true, SortKey = "action" },
+            new TableColumn<AuditHistoryListItemVm> { Title = "Старые данные", Value = a => (a.OldData == null ? "Нет данных" : a.OldData), Sortable = true, SortKey = "old_data" },
+            new TableColumn<AuditHistoryListItemVm> { Title = "Новые данные", Value = a => (a.NewData == null ? "Нет данных" : a.NewData), Sortable = true, SortKey = "new_data" },
+            new TableColumn<AuditHistoryListItemVm> { Title = "Изменено", Value = a => a.ChangedAt, Sortable = true, SortKey = "changed_at" },
+            new TableColumn<AuditHistoryListItemVm> { Title = "Кем изменено", Value = a => a.ChangedBy.ToString(), Sortable = true, SortKey = "changed_by" }
+        ];
+    }
+
+    private async Task LoadData(TableQuery q)
+    {
+        if (!_canRead) return;
+        _query = q;
+        _page = await AuditHistoryService.GetPagedAsync(_query);
+    }
+}

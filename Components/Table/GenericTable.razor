@@ -1,0 +1,253 @@
+@inject IJSRuntime JSRuntime
+
+@typeparam TItem
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-3 w-75">
+                <input class="form-control w-50"
+                       placeholder="Поиск..."
+                       value="@Query.Search"
+                       @oninput="OnSearchChanged" />
+                
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-nowrap small text-muted">Строк на странице:</span>
+                    <select class="form-select form-select-sm w-auto"
+                            value="@Query.PageSize"
+                            @onchange="OnPageSizeChanged">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="OpenColumnSettings" title="Настройка колонок">
+                    <i class="bi bi-layout-three-columns"></i> Колонки
+                </button>
+                <button class="btn btn-outline-success btn-sm" @onclick="ExportToCsv" title="Выгрузить в CSV">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered border-secondary-subtle">
+                <thead class="table-light">
+                <tr>
+                    @foreach (var col in Columns.Where(c => _visibleColumnKeys.Contains(c.SortKey ?? c.Title)))
+                    {
+                        <th style="cursor:@(col.Sortable ? "pointer" : "default"); overflow: auto; resize: horizontal; min-width: 100px;">
+                            <div class="d-flex justify-content-between align-items-center" @onclick="() => OnSort(col)">
+                                <span>@col.Title</span>
+                                @if (Query.SortBy == col.SortKey)
+                                {
+                                    <i class="bi @(Query.SortDesc ? "bi-sort-down" : "bi-sort-up") text-primary"></i>
+                                }
+                            </div>
+                        </th>
+                    }
+                </tr>
+                </thead>
+
+                <tbody>
+                @if (Data.Items.Count == 0)
+                {
+                    <tr>
+                        <td colspan="@Columns.Count(c => _visibleColumnKeys.Contains(c.SortKey ?? c.Title))" class="text-center py-4 text-muted">
+                            Данные не найдены
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Data.Items)
+                    {
+                        <tr>
+                            @foreach (var column in Columns.Where(c => _visibleColumnKeys.Contains(c.SortKey ?? c.Title)))
+                            {
+                                <td>
+                                    @if (column.Template != null)
+                                    {
+                                        @column.Template(item)
+                                    }
+                                    else
+                                    {
+                                        @column.Value(item)
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="text-muted small">
+                Показано с @((Query.Page - 1) * Query.PageSize + 1) по @Math.Min(Query.Page * Query.PageSize, Data.TotalCount) из @Data.TotalCount
+            </span>
+
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item @(Query.Page == 1 ? "disabled" : "")">
+                        <button class="page-item page-link" @onclick="PrevPage"><i class="bi bi-chevron-left"></i></button>
+                    </li>
+                    
+                    @for (int i = 1; i <= TotalPages; i++)
+                    {
+                        // Логика: показываем первую, последнюю и страницы вокруг текущей
+                        // Если страниц мало (до 7), показываем все.
+                        if (TotalPages <= 7 || (i >= Query.Page - 2 && i <= Query.Page + 2) || i == 1 || i == TotalPages)
+                        {
+                            var pageNumber = i;
+                            <li class="page-item @(Query.Page == pageNumber ? "active" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(pageNumber)">@pageNumber</button>
+                            </li>
+                        }
+                        else if (i == Query.Page - 3 || i == Query.Page + 3)
+                        {
+                            // Добавляем многоточие
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+                    
+                    @*<li class="page-item active"><span class="page-link">@Query.Page</span></li>*@
+                    
+                    <li class="page-item @(Query.Page * Query.PageSize >= Data.TotalCount ? "disabled" : "")">
+                        <button class="page-item page-link" @onclick="NextPage"><i class="bi bi-chevron-right"></i></button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+@if (_showColumnModal)
+{
+    <div class="modal fade show d-block" style="background: rgba(0,0,0,0.5)">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header py-2">
+                    <h5 class="modal-title">Видимость колонок</h5>
+                </div>
+                <div class="modal-body">
+                    @foreach (var col in Columns)
+                    {
+                        var key = col.SortKey ?? col.Title;
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="@key" 
+                                   checked="@_visibleColumnKeys.Contains(key)"
+                                   @onchange="@(e => ToggleColumn(key, e.Value))">
+                            <label class="form-check-label" for="@key">@col.Title</label>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer py-1">
+                    <button class="btn btn-primary btn-sm w-100" @onclick="() => _showColumnModal = false">Готово</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public PagedResult<TItem> Data { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public List<TableColumn<TItem>> Columns { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public TableQuery Query { get; set; } = new();
+
+    [Parameter, EditorRequired]
+    public EventCallback<TableQuery> OnQueryChanged { get; set; }
+    
+    private bool _showColumnModal;
+    private HashSet<string> _visibleColumnKeys = [];
+    
+    // Вычисляем общее количество страниц
+    private int TotalPages => (int)Math.Ceiling((double)Data.TotalCount / Query.PageSize);
+    
+    protected override void OnParametersSet()
+    {
+        // Инициализируем видимые колонки всеми доступными при первом запуске
+        if (_visibleColumnKeys.Count == 0)
+        {
+            _visibleColumnKeys = Columns.Select(c => c.SortKey ?? c.Title).ToHashSet();
+        }
+    }
+    
+    private void OpenColumnSettings() => _showColumnModal = true;
+    
+    private void ToggleColumn(string key, object? isChecked)
+    {
+        if (isChecked is bool check)
+        {
+            if (check) _visibleColumnKeys.Add(key);
+            else if (_visibleColumnKeys.Count > 1) _visibleColumnKeys.Remove(key); // Не даем скрыть все колонки
+        }
+    }
+    
+    private async Task ExportToCsv()
+    {
+        
+    }
+
+    private async Task OnSearchChanged(ChangeEventArgs e)
+    {
+        Query.Search = e.Value?.ToString();
+        Query.Page = 1;
+        await OnQueryChanged.InvokeAsync(Query);
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        Query.PageSize = int.Parse(e.Value!.ToString()!);
+        Query.Page = 1;
+        await OnQueryChanged.InvokeAsync(Query);
+    }
+
+    private async Task OnSort(TableColumn<TItem> col)
+    {
+        if (!col.Sortable || col.SortKey == null)
+            return;
+
+        if (Query.SortBy == col.SortKey)
+            Query.SortDesc = !Query.SortDesc;
+        else
+        {
+            Query.SortBy = col.SortKey;
+            Query.SortDesc = false;
+        }
+
+        await OnQueryChanged.InvokeAsync(Query);
+    }
+
+    // Метод для перехода на конкретную страницу
+    private async Task GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+        {
+            Query.Page = page;
+            await OnQueryChanged.InvokeAsync(Query);
+        }
+    }
+    
+    private async Task PrevPage()
+    {
+        Query.Page--;
+        await OnQueryChanged.InvokeAsync(Query);
+    }
+
+    private async Task NextPage()
+    {
+        Query.Page++;
+        await OnQueryChanged.InvokeAsync(Query);
+    }
+}
