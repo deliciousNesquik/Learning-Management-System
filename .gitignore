@@ -1,1 +1,6 @@
-appsettings.json
+*.user
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

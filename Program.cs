@@ -9,7 +9,21 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Настройка драйвера БД
+// Безопасная загрузка конфигурации
+builder.Configuration
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables(); // Переменные окружения имеют приоритет
+
+// Для разработки - User Secrets
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
+
+// Регистрация сервисов с безопасными настройками
+
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 // 2. Регистрация сервисов
@@ -32,14 +46,14 @@ builder.Services.AddScoped<PostgresConnectionInterceptor>();
 builder.Services.AddDbContextFactory<DatabaseContext>((sp, options) =>
 {
     var connectionString = builder.Configuration.GetConnectionString("PostgresConnection");
-    options.UseNpgsql(connectionString);
-    
+    //options.UseNpgsql(connectionString);
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection"));
     // Подключаем интерцептор
     var interceptor = sp.GetRequiredService<PostgresConnectionInterceptor>();
     options.AddInterceptors(interceptor);
 }, ServiceLifetime.Scoped);
 
-// 4. Аутентификация
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
