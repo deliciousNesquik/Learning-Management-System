@@ -1,5 +1,6 @@
 @using LMS.Components.Table
 @using LMS.Interfaces
+@using LMS.Models
 @using LMS.Services
 @using LMS.ViewModels.AuditHistoryViewModel
 @using Microsoft.AspNetCore.Authorization
@@ -76,7 +77,7 @@ else
         var userId = UserSessionAccessor.UserUuid;
         if (userId.HasValue)
         {
-            _canRead = await UserPermissions.HasPermission(userId.Value, "audit_history", "select");
+            _canRead = await UserSessionAccessor.HasPermission(DbSchemaConstants.AuditHistory, SqlOperation.Select);
 
             if (_canRead)
             {

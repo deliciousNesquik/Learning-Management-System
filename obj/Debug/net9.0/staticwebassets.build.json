@@ -1,0 +1,1145 @@
+{
+  "Version": 1,
+  "Hash": "YIG7VT0hy2voZZYZF2xS4QfK3ntjYAG+ShcxLDayGp8=",
+  "Source": "LMS",
+  "BasePath": "_content/LMS",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "LMS/wwwroot",
+      "Source": "LMS",
+      "ContentRoot": "/home/ugly/RiderProjects/Learning-Management-System/wwwroot/",
+      "BasePath": "_content/LMS",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/jah0b0xclk-hxnscneoqg.gz",
+      "SourceId": "LMS",
+      "SourceType": "Discovered",
+      "ContentRoot": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/",
+      "BasePath": "_content/LMS",
+      "RelativePath": "app#[.{fingerprint=hxnscneoqg}]?.css.gz",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Alternative",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "/home/ugly/RiderProjects/Learning-Management-System/wwwroot/app.css",
+      "AssetTraitName": "Content-Encoding",
+      "AssetTraitValue": "gzip",
+      "Fingerprint": "qw7mri3861",
+      "Integrity": "ioQ8LT4jR8gP971uqNtPw/38ogaSIsrmkkDmDcb/VPw=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "/home/ugly/RiderProjects/Learning-Management-System/wwwroot/app.css"
+    },
+    {
+      "Identity": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/plk049q9kj-r7f4483mrk.gz",
+      "SourceId": "LMS",
+      "SourceType": "Computed",
+      "ContentRoot": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/",
+      "BasePath": "_content/LMS",
+      "RelativePath": "LMS#[.{fingerprint=r7f4483mrk}]!.bundle.scp.css.gz",
+      "AssetKind": "All",
+      "AssetMode": "Reference",
+      "AssetRole": "Alternative",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/projectbundle/LMS.bundle.scp.css",
+      "AssetTraitName": "Content-Encoding",
+      "AssetTraitValue": "gzip",
+      "Fingerprint": "vjln0hx8gw",
+      "Integrity": "JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/projectbundle/LMS.bundle.scp.css"
+    },
+    {
+      "Identity": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/sanz8v71qj-r7f4483mrk.gz",
+      "SourceId": "LMS",
+      "SourceType": "Computed",
+      "ContentRoot": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/",
+      "BasePath": "_content/LMS",
+      "RelativePath": "LMS#[.{fingerprint=r7f4483mrk}]?.styles.css.gz",
+      "AssetKind": "All",
+      "AssetMode": "CurrentProject",
+      "AssetRole": "Alternative",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/bundle/LMS.styles.css",
+      "AssetTraitName": "Content-Encoding",
+      "AssetTraitValue": "gzip",
+      "Fingerprint": "vjln0hx8gw",
+      "Integrity": "JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/bundle/LMS.styles.css"
+    },
+    {
+      "Identity": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/bundle/LMS.styles.css",
+      "SourceId": "LMS",
+      "SourceType": "Computed",
+      "ContentRoot": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/bundle/",
+      "BasePath": "_content/LMS",
+      "RelativePath": "LMS#[.{fingerprint}]?.styles.css",
+      "AssetKind": "All",
+      "AssetMode": "CurrentProject",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "ScopedCss",
+      "AssetTraitValue": "ApplicationBundle",
+      "Fingerprint": "r7f4483mrk",
+      "Integrity": "B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/bundle/LMS.styles.css"
+    },
+    {
+      "Identity": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/projectbundle/LMS.bundle.scp.css",
+      "SourceId": "LMS",
+      "SourceType": "Computed",
+      "ContentRoot": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/projectbundle/",
+      "BasePath": "_content/LMS",
+      "RelativePath": "LMS#[.{fingerprint}]!.bundle.scp.css",
+      "AssetKind": "All",
+      "AssetMode": "Reference",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "ScopedCss",
+      "AssetTraitValue": "ProjectBundle",
+      "Fingerprint": "r7f4483mrk",
+      "Integrity": "B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/projectbundle/LMS.bundle.scp.css"
+    },
+    {
+      "Identity": "/home/ugly/RiderProjects/Learning-Management-System/wwwroot/app.css",
+      "SourceId": "LMS",
+      "SourceType": "Discovered",
+      "ContentRoot": "/home/ugly/RiderProjects/Learning-Management-System/wwwroot/",
+      "BasePath": "_content/LMS",
+      "RelativePath": "app#[.{fingerprint}]?.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "hxnscneoqg",
+      "Integrity": "JZAvVzVpFH5Maqy6QB2QvUVestqp/y+7LgNJbUezwsQ=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/app.css"
+    },
+    {
+      "Identity": "/home/ugly/RiderProjects/Learning-Management-System/wwwroot/icons/logo.png",
+      "SourceId": "LMS",
+      "SourceType": "Discovered",
+      "ContentRoot": "/home/ugly/RiderProjects/Learning-Management-System/wwwroot/",
+      "BasePath": "_content/LMS",
+      "RelativePath": "icons/logo#[.{fingerprint}]?.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "typxwkhui7",
+      "Integrity": "S36F6Y7anGHuHFUaZ/4D+INLK7W0192rf8M6Ka1T7pM=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/icons/logo.png"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "app.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/jah0b0xclk-hxnscneoqg.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000554323725"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1803"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ioQ8LT4jR8gP971uqNtPw/38ogaSIsrmkkDmDcb/VPw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:10:48 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"JZAvVzVpFH5Maqy6QB2QvUVestqp/y+7LgNJbUezwsQ=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-JZAvVzVpFH5Maqy6QB2QvUVestqp/y+7LgNJbUezwsQ="
+        }
+      ]
+    },
+    {
+      "Route": "app.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/wwwroot/app.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3190"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"JZAvVzVpFH5Maqy6QB2QvUVestqp/y+7LgNJbUezwsQ=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:10:48 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-JZAvVzVpFH5Maqy6QB2QvUVestqp/y+7LgNJbUezwsQ="
+        }
+      ]
+    },
+    {
+      "Route": "app.css.gz",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/jah0b0xclk-hxnscneoqg.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1803"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ioQ8LT4jR8gP971uqNtPw/38ogaSIsrmkkDmDcb/VPw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:10:48 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-ioQ8LT4jR8gP971uqNtPw/38ogaSIsrmkkDmDcb/VPw="
+        }
+      ]
+    },
+    {
+      "Route": "app.hxnscneoqg.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/jah0b0xclk-hxnscneoqg.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000554323725"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1803"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ioQ8LT4jR8gP971uqNtPw/38ogaSIsrmkkDmDcb/VPw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:10:48 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"JZAvVzVpFH5Maqy6QB2QvUVestqp/y+7LgNJbUezwsQ=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "hxnscneoqg"
+        },
+        {
+          "Name": "label",
+          "Value": "app.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-JZAvVzVpFH5Maqy6QB2QvUVestqp/y+7LgNJbUezwsQ="
+        }
+      ]
+    },
+    {
+      "Route": "app.hxnscneoqg.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/wwwroot/app.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "3190"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"JZAvVzVpFH5Maqy6QB2QvUVestqp/y+7LgNJbUezwsQ=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:10:48 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "hxnscneoqg"
+        },
+        {
+          "Name": "label",
+          "Value": "app.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-JZAvVzVpFH5Maqy6QB2QvUVestqp/y+7LgNJbUezwsQ="
+        }
+      ]
+    },
+    {
+      "Route": "app.hxnscneoqg.css.gz",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/jah0b0xclk-hxnscneoqg.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1803"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"ioQ8LT4jR8gP971uqNtPw/38ogaSIsrmkkDmDcb/VPw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:10:48 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "hxnscneoqg"
+        },
+        {
+          "Name": "label",
+          "Value": "app.css.gz"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-ioQ8LT4jR8gP971uqNtPw/38ogaSIsrmkkDmDcb/VPw="
+        }
+      ]
+    },
+    {
+      "Route": "icons/logo.png",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/wwwroot/icons/logo.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "95277"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"S36F6Y7anGHuHFUaZ/4D+INLK7W0192rf8M6Ka1T7pM=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:10:48 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-S36F6Y7anGHuHFUaZ/4D+INLK7W0192rf8M6Ka1T7pM="
+        }
+      ]
+    },
+    {
+      "Route": "icons/logo.typxwkhui7.png",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/wwwroot/icons/logo.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "95277"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"S36F6Y7anGHuHFUaZ/4D+INLK7W0192rf8M6Ka1T7pM=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:10:48 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "typxwkhui7"
+        },
+        {
+          "Name": "label",
+          "Value": "icons/logo.png"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-S36F6Y7anGHuHFUaZ/4D+INLK7W0192rf8M6Ka1T7pM="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.bundle.scp.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/plk049q9kj-r7f4483mrk.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.003058103976"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "326"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.bundle.scp.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/projectbundle/LMS.bundle.scp.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "533"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.bundle.scp.css.gz",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/plk049q9kj-r7f4483mrk.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "326"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.r7f4483mrk.bundle.scp.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/plk049q9kj-r7f4483mrk.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.003058103976"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "326"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "r7f4483mrk"
+        },
+        {
+          "Name": "label",
+          "Value": "LMS.bundle.scp.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.r7f4483mrk.bundle.scp.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/projectbundle/LMS.bundle.scp.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "533"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "r7f4483mrk"
+        },
+        {
+          "Name": "label",
+          "Value": "LMS.bundle.scp.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.r7f4483mrk.bundle.scp.css.gz",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/plk049q9kj-r7f4483mrk.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "326"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "r7f4483mrk"
+        },
+        {
+          "Name": "label",
+          "Value": "LMS.bundle.scp.css.gz"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.r7f4483mrk.styles.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/sanz8v71qj-r7f4483mrk.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.003058103976"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "326"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "r7f4483mrk"
+        },
+        {
+          "Name": "label",
+          "Value": "LMS.styles.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.r7f4483mrk.styles.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/bundle/LMS.styles.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "533"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "r7f4483mrk"
+        },
+        {
+          "Name": "label",
+          "Value": "LMS.styles.css"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.r7f4483mrk.styles.css.gz",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/sanz8v71qj-r7f4483mrk.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "326"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "r7f4483mrk"
+        },
+        {
+          "Name": "label",
+          "Value": "LMS.styles.css.gz"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.styles.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/sanz8v71qj-r7f4483mrk.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.003058103976"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "326"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.styles.css",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/scopedcss/bundle/LMS.styles.css",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "533"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-B3oAjnXMJ+QXppAcwbayId9U3JYNmMh31l6GzEWP2Vo="
+        }
+      ]
+    },
+    {
+      "Route": "LMS.styles.css.gz",
+      "AssetFile": "/home/ugly/RiderProjects/Learning-Management-System/obj/Debug/net9.0/compressed/sanz8v71qj-r7f4483mrk.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "326"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/css"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 14 Jan 2026 10:32:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-JT/3z5bcmEfXBvL/XjRw/XzQ732oYjM5Up4jmgZ+5yA="
+        }
+      ]
+    }
+  ]
+}

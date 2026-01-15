@@ -49,37 +49,36 @@ public class DirectorService(IDbContextFactory<DatabaseContext> dbFactory) : IDi
         var items = await q
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
-            .Select(d => new DirectorListItemVm
+            .Select(d => new 
             {
-                Uuid = d.Uuid,
-                Post = d.Post,
-                Surname = d.Surname,
-                Name = d.Name,
-                Patronymic = d.Patronymic ?? "",
-
-                OrganizationName = string.Join(", ",
-                    d.BranchesDirectors
-                        .Select(bd => bd.Branch.Organization.Name)
-                        .Distinct()),
-
-                OrganizationUuid = d.BranchesDirectors
-                    .Select(bd => bd.Branch.Organization.Uuid)
-                    .Distinct()
-                    .FirstOrDefault(),
-
-                BranchesNames = string.Join(", ",
-                    d.BranchesDirectors
-                        .Select(bd => bd.Branch.Name)),
-
-                BranchesUuids = d.BranchesDirectors
-                    .Select(bd => bd.Branch.Uuid)
-                    .ToList()
+                d.Uuid,
+                d.Post,
+                d.Surname,
+                d.Name,
+                d.Patronymic,
+                // Загружаем данные один раз во временный объект
+                Links = d.BranchesDirectors.Select(bd => new {
+                    OrgName = bd.Branch.Organization.Name,
+                    OrgUuid = bd.Branch.Organization.Uuid,
+                    BranchName = bd.Branch.Name,
+                    BranchUuid = bd.Branch.Uuid
+                }).ToList()
             })
             .ToListAsync();
 
         return new PagedResult<DirectorListItemVm>
         {
-            Items = items,
+            Items = items.Select(x => new DirectorListItemVm {
+                Uuid = x.Uuid,
+                Post = x.Post,
+                Surname = x.Surname,
+                Name = x.Name,
+                Patronymic = x.Patronymic ?? "",
+                OrganizationName = string.Join(", ", x.Links.Select(l => l.OrgName).Distinct()),
+                OrganizationUuid = x.Links.Select(l => l.OrgUuid).FirstOrDefault(),
+                BranchesNames = string.Join(", ", x.Links.Select(l => l.BranchName)),
+                BranchesUuids = x.Links.Select(l => l.BranchUuid).ToList()
+            }).ToList(),
             TotalCount = total
         };
     }

@@ -1,4 +1,5 @@
 ﻿@using LMS.Components.Shared
+@using LMS.Models
 @using LMS.Services
 @using Microsoft.AspNetCore.Components.Authorization
 @inherits LayoutComponentBase
@@ -41,23 +42,59 @@
                             else
                             {
                                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    @if (_canReadAdministrators) { <li><a class="dropdown-item" href="/administrators">Администраторы</a></li> }
-                                    else if(!_canReadAdministrators) { <li><a class="dropdown-item disabled" href="/">Администраторы</a></li> }
-                                    
-                                    @if (_canReadOrganizations) { <li><a class="dropdown-item" href="/organizations">Организации</a></li> }
-                                    else if(!_canReadOrganizations) { <li><a class="dropdown-item disabled" href="/">Организации</a></li> }
-                                    
-                                    @if (_canReadBranches) { <li><a class="dropdown-item" href="/branches">Филиалы</a></li> }
-                                    else if(!_canReadBranches) { <li><a class="dropdown-item disabled" href="/">Филиалы</a></li> }
-                                    
-                                    @if (_canReadDirectors) { <li><a class="dropdown-item" href="/directors">Директора</a></li> }
-                                    else if(!_canReadDirectors) { <li><a class="dropdown-item disabled" href="/">Директора</a></li> }
-                                    
-                                    @if (_canReadSubscriptions) { <li><a class="dropdown-item" href="/subscriptions">Подписки</a></li> }
-                                    else if(!_canReadSubscriptions) { <li><a class="dropdown-item disabled" href="/">Подписки</a></li> }
-                                    
-                                    @if (_canReadModerators) { <li><a class="dropdown-item" href="/moderators">Модераторы</a></li> }
-                                    else if(!_canReadModerators) { <li><a class="dropdown-item disabled" href="/">Модераторы</a></li> }
+                                    @if (_canReadAdministrators)
+                                    {
+                                        <li><a class="dropdown-item" href="/administrators">Администраторы</a></li>
+                                    }
+                                    else if (!_canReadAdministrators)
+                                    {
+                                        <li><a class="dropdown-item disabled" href="/">Администраторы</a></li>
+                                    }
+
+                                    @if (_canReadOrganizations)
+                                    {
+                                        <li><a class="dropdown-item" href="/organizations">Организации</a></li>
+                                    }
+                                    else if (!_canReadOrganizations)
+                                    {
+                                        <li><a class="dropdown-item disabled" href="/">Организации</a></li>
+                                    }
+
+                                    @if (_canReadBranches)
+                                    {
+                                        <li><a class="dropdown-item" href="/branches">Филиалы</a></li>
+                                    }
+                                    else if (!_canReadBranches)
+                                    {
+                                        <li><a class="dropdown-item disabled" href="/">Филиалы</a></li>
+                                    }
+
+                                    @if (_canReadDirectors)
+                                    {
+                                        <li><a class="dropdown-item" href="/directors">Директора</a></li>
+                                    }
+                                    else if (!_canReadDirectors)
+                                    {
+                                        <li><a class="dropdown-item disabled" href="/">Директора</a></li>
+                                    }
+
+                                    @if (_canReadSubscriptions)
+                                    {
+                                        <li><a class="dropdown-item" href="/subscriptions">Подписки</a></li>
+                                    }
+                                    else if (!_canReadSubscriptions)
+                                    {
+                                        <li><a class="dropdown-item disabled" href="/">Подписки</a></li>
+                                    }
+
+                                    @if (_canReadModerators)
+                                    {
+                                        <li><a class="dropdown-item" href="/moderators">Модераторы</a></li>
+                                    }
+                                    else if (!_canReadModerators)
+                                    {
+                                        <li><a class="dropdown-item disabled" href="/">Модераторы</a></li>
+                                    }
 
                                     @if (_canReadAuditHistory)
                                     {
@@ -207,25 +244,25 @@
         var userId = UserSessionAccessor.UserUuid;
         if (userId.HasValue)
         {
-            _canReadAdministrators = await UserPermissions.HasPermission(userId.Value, "administrators", "select");
-            _canReadOrganizations = await UserPermissions.HasPermission(userId.Value, "organizations", "select");
-            _canReadBranches = await UserPermissions.HasPermission(userId.Value, "branches", "select");
-            _canReadSubscriptions = await UserPermissions.HasPermission(userId.Value, "subscriptions", "select");
-            _canReadDirectors = await UserPermissions.HasPermission(userId.Value, "directors", "select");
-            _canReadModerators = await UserPermissions.HasPermission(userId.Value, "moderators", "select");
-            _canReadAuditHistory = await UserPermissions.HasPermission(userId.Value, "audit_history", "select");
+            _canReadAdministrators = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Select);
+            _canReadOrganizations = await UserSessionAccessor.HasPermission(DbSchemaConstants.Organizations, SqlOperation.Select);
+            _canReadBranches = await UserSessionAccessor.HasPermission(DbSchemaConstants.Branches, SqlOperation.Select);
+            _canReadSubscriptions = await UserSessionAccessor.HasPermission(DbSchemaConstants.Subscriptions, SqlOperation.Select);
+            _canReadDirectors = await UserSessionAccessor.HasPermission(DbSchemaConstants.Directors, SqlOperation.Select);
+            _canReadModerators = await UserSessionAccessor.HasPermission(DbSchemaConstants.Moderators, SqlOperation.Select);
+            _canReadAuditHistory = await UserSessionAccessor.HasPermission(DbSchemaConstants.AuditHistory, SqlOperation.Select);
             
-            _canReadCourses = await UserPermissions.HasPermission(userId.Value, "courses", "select");
-            _canReadMaterials = await UserPermissions.HasPermission(userId.Value, "materials", "select");
-            _canReadAssessments = await UserPermissions.HasPermission(userId.Value, "assessments", "select");
+            _canReadCourses = await UserSessionAccessor.HasPermission(DbSchemaConstants.Courses, SqlOperation.Select);
+            _canReadMaterials = await UserSessionAccessor.HasPermission(DbSchemaConstants.Materials, SqlOperation.Select);
+            _canReadAssessments = await UserSessionAccessor.HasPermission(DbSchemaConstants.Assessments, SqlOperation.Select);
             
-            _canReadCoursesAssignments = await UserPermissions.HasPermission(userId.Value, "courses_assignments", "select");
-            _canReadCoursesEnrollments = await UserPermissions.HasPermission(userId.Value, "courses_enrollments", "select");
-            _canReadAssessmentsAttempts = await UserPermissions.HasPermission(userId.Value, "assessments_attempts", "select");
+            _canReadCoursesAssignments = await UserSessionAccessor.HasPermission(DbSchemaConstants.CoursesAssignments, SqlOperation.Select);
+            _canReadCoursesEnrollments = await UserSessionAccessor.HasPermission(DbSchemaConstants.CoursesEnrollments, SqlOperation.Select);
+            _canReadAssessmentsAttempts = await UserSessionAccessor.HasPermission(DbSchemaConstants.AssessmentsAttempts, SqlOperation.Select);
             
-            _canReadEmployees = await UserPermissions.HasPermission(userId.Value, "employees", "select");
-            _canReadEmployeesGroups = await UserPermissions.HasPermission(userId.Value, "employees_groups", "select");
-            _canReadGroupMembership = await UserPermissions.HasPermission(userId.Value, "group_memberships", "select");
+            _canReadEmployees = await UserSessionAccessor.HasPermission(DbSchemaConstants.Employees, SqlOperation.Select);
+            _canReadEmployeesGroups = await UserSessionAccessor.HasPermission(DbSchemaConstants.EmployeesGroups, SqlOperation.Select);
+            _canReadGroupMembership = await UserSessionAccessor.HasPermission(DbSchemaConstants.GroupMemberships, SqlOperation.Select);
         }
     }
 

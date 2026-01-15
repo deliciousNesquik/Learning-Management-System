@@ -1,5 +1,6 @@
 using LMS.Data;
 using LMS.Data.Models;
+using LMS.Models;
 using LMS.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,74 +8,81 @@ namespace LMS.Services;
 
 public class UserPermissions(IDbContextFactory<DatabaseContext> dbFactory)
 {
-    private readonly List<(string Name, string Display)> _allTables =
+    private readonly List<(string Name, string Display, bool IsAdminOnly)> _allTables =
     [
-        ("audit_history", "История изменения БД"),
-        ("administrators", "Администраторы"),
-        ("legal_forms", "Формы организаций"),
-        ("organizations", "Организации"),
-        ("branches", "Филиалы"),
-        ("branches_directors", "Директора к филиалам"),
-        ("directors", "Руководители организаций"),
-        ("branches_moderators", "Модераторы к филиалам"),
-        ("subscriptions", "Подписки"),
-        ("subscriptions_courses_list", "Курсы для подписки"),
-        ("courses_activities", "Типы активностей"),
-        ("courses_categories", "Категории курсов"),
-        ("courses_statuses", "Типы статусов"),
-        ("materials_types", "Типы материалов"),
-        ("questions_types", "Типы вопросов"),
-        ("answers", "Ответы"),
-        ("assessments", "Тесты"),
-        ("materials", "Материалы"),
-        ("materials_courses_list", "Материалы к курсам"),
-        ("questions", "Вопросы"),
+        // --- Системные и инфраструктурные таблицы ---
+    (DbSchemaConstants.AuditHistory, "История изменения БД", true),
+    (DbSchemaConstants.UserPermissions, "Права пользователей", true),
+    (DbSchemaConstants.LegalForms, "Формы организаций", true),
 
-        // --- Модераторские таблицы ---
-        ("moderators", "Модераторы"),
-        ("assessments_attempts", "Попытки тестирований"),
-        ("courses", "Курсы"),
-        ("courses_assignments", "Назначение курсов"),
-        ("courses_enrollments", "Прохождение курсов"),
-        ("employees", "Сотрудники"),
-        ("employees_answers", "Ответы сотрудников"),
-        ("employees_groups", "Группы сотрудников"),
-        ("group_memberships", "Отношение сотрудника к группе")
+    // --- Пользователи и роли ---
+    (DbSchemaConstants.Administrators, "Администраторы", true),
+    (DbSchemaConstants.Moderators, "Модераторы", true),
+    (DbSchemaConstants.Directors, "Руководители", true),
+    (DbSchemaConstants.Employees, "Сотрудники", true),
+
+    // --- Структура организации ---
+    (DbSchemaConstants.Organizations, "Организации", true),
+    (DbSchemaConstants.Branches, "Филиалы", true),
+    (DbSchemaConstants.BranchesDirectors, "Директора к филиалам", true),
+    (DbSchemaConstants.BranchesModerators, "Модераторы к филиалам", true),
+    (DbSchemaConstants.EmployeesGroups, "Группы сотрудников", false),
+    (DbSchemaConstants.GroupMemberships, "Членство в группах", false),
+
+    // --- Обучение (Курсы) ---
+    (DbSchemaConstants.Courses, "Курсы", true),
+    (DbSchemaConstants.CoursesActivities, "Типы активностей", true),
+    (DbSchemaConstants.CoursesCategories, "Категории курсов", true),
+    (DbSchemaConstants.CoursesStatuses, "Статусы курсов", true),
+    (DbSchemaConstants.CoursesAssignments, "Назначение курсов", false),
+    (DbSchemaConstants.CoursesEnrollments, "Прохождение курсов", false),
+
+    // --- Материалы ---
+    (DbSchemaConstants.Materials, "Материалы", true),
+    (DbSchemaConstants.MaterialsTypes, "Типы материалов", true),
+    (DbSchemaConstants.MaterialsCoursesList, "Материалы к курсам", true),
+
+    // --- Тестирование (Assessments) ---
+    (DbSchemaConstants.Assessments, "Тесты", true),
+    (DbSchemaConstants.AssessmentsAttempts, "Попытки тестирований", false),
+    (DbSchemaConstants.Questions, "Вопросы", true),
+    (DbSchemaConstants.QuestionsTypes, "Типы вопросов", true),
+    (DbSchemaConstants.Answers, "Ответы", true),
+    (DbSchemaConstants.EmployeesAnswers, "Ответы сотрудников", false),
+
+    // --- Подписки ---
+    (DbSchemaConstants.Subscriptions, "Подписки", true),
+    (DbSchemaConstants.SubscriptionsCoursesList, "Курсы для подписки", true)
     ];
 
-    private IReadOnlyList<(string Name, string Display)> GetTablesForUser(bool isAdmin)
+    /// <summary>Возвращает список таблиц которыми может управлять конкретный пользователь</summary>
+    /// <param name="isAdmin">Параметр регулирующий какие таблицы необходимо отдать</param>
+    /// <returns> IReadOnlyList(имя таблицы БД, имя таблицы понятное пользователю, только для админа) </returns>
+    private List<(string Name, string Display, bool IsAdminOnly)> GetTablesForUser(bool isAdmin)
     {
-        if (isAdmin)
-        {
-            // админ видит все таблицы
-            return _allTables;
-        }
-    
-        // модератор видит только нижний блок
-        var moderatorTablesStart = _allTables.FindIndex(t => t.Name == "moderators");
-        if (moderatorTablesStart < 0)
-            return Array.Empty<(string, string)>();
-
-        return _allTables.Skip(moderatorTablesStart).ToList();
+        return isAdmin ? _allTables : _allTables.Where(p => !p.IsAdminOnly).ToList();
     }
 
-    public async Task<bool> HasPermission(Guid? userUuid, string tableName, string action)
+    public async Task<Dictionary<string, HashSet<SqlOperation>>> GetAllPermissions(Guid userUuid)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
     
-        var p = await db.UserPermissions
-            .FirstOrDefaultAsync(x => x.UserUuid == userUuid && x.TableName == tableName);
-        
-        if (p == null) return false;
+        var permissions = await db.UserPermissions
+            .Where(p => p.UserUuid == userUuid)
+            .ToListAsync();
 
-        return action.ToLower() switch
-        {
-            "select" => p.CanSelect,
-            "insert" => p.CanInsert,
-            "update" => p.CanUpdate,
-            "delete" => p.CanDelete,
-            _ => false
-        };
+        // Группируем права по имени таблицы для быстрого поиска
+        return permissions.ToDictionary(
+            p => p.TableName,
+            p => {
+                var ops = new HashSet<SqlOperation>();
+                if (p.CanSelect) ops.Add(SqlOperation.Select);
+                if (p.CanInsert) ops.Add(SqlOperation.Insert);
+                if (p.CanUpdate) ops.Add(SqlOperation.Update);
+                if (p.CanDelete) ops.Add(SqlOperation.Delete);
+                return ops;
+            }
+        );
     }
     
     public async Task<List<TablePermissionVm>> GetPermissionsAsync(Guid userUuid, bool isAdmin = false)
