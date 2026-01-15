@@ -355,18 +355,29 @@ else
         isLoaded = true;
     }
 
+    private TableColumn<AdminListItemVm> CreateDataColumn(string title, System.Func<AdminListItemVm,object?> value, bool sortable, string sortKey)
+    {
+        return new TableColumn<AdminListItemVm>()
+        {
+            Title = title,
+            Value = value,
+            Sortable = sortable,
+            SortKey = sortKey,
+        };
+    }
+    
     private void DefineTableColumns()
     {
-        columns = new List<TableColumn<AdminListItemVm>>
-        {
-            new() { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
-            new() { Title = "Логин", Value = a => a.Login, Sortable = true, SortKey = "login" },
-            new() { Title = "Статус", Value = a => a.IsActive ? "Активен" : "Заблокирован", Sortable = true, SortKey = "is_active" },
-            new() { Title = "Дата создания", Value = a => a.CreatedAt.ToString("dd.MM.yyyy HH:mm"), Sortable = true, SortKey = "created_at" },
-            new() { Title = "Фамилия", Value = a => a.Surname, Sortable = true, SortKey = "surname" },
-            new() { Title = "Имя", Value = a => a.Name, Sortable = true, SortKey = "name" },
-            new() { Title = "Отчество", Value = a => a.Patronymic, Sortable = true, SortKey = "patronymic" },
-        };
+        columns =
+        [
+            CreateDataColumn("UUID", a => a.Uuid, true, "uuid"),
+            CreateDataColumn("Логин", a => a.Login, true, "login"),
+            CreateDataColumn("Статус", a => a.IsActive ? "Активен" : "Заблокирован", true, "status"),
+            CreateDataColumn("Фамилия", a => a.Surname, true, "surname"),
+            CreateDataColumn("Имя", a => a.Name, true, "name"),
+            CreateDataColumn("Отчество", a => a.Patronymic, true, "patronymic"),
+            CreateDataColumn("Дата создания", a => a.CreatedAt.ToString("dd.MM.yyyy HH:mm"), true, "created_at"),
+        ];
 
         // Добавляем колонку действий ТОЛЬКО если есть хоть одно право на изменение
         if (canUpdate || canDelete)

@@ -4,9 +4,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inherits LayoutComponentBase
 @inject UserSessionAccessor UserSessionAccessor
-@inject UserPermissions UserPermissions
-@inject NavigationManager NavigationManager
-@inject IJSRuntime JSRuntime
 
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
@@ -42,59 +39,23 @@
                             else
                             {
                                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    @if (_canReadAdministrators)
-                                    {
-                                        <li><a class="dropdown-item" href="/administrators">Администраторы</a></li>
-                                    }
-                                    else if (!_canReadAdministrators)
-                                    {
-                                        <li><a class="dropdown-item disabled" href="/">Администраторы</a></li>
-                                    }
+                                    @if (_canReadAdministrators) { <li><a class="dropdown-item" href="/administrators">Администраторы</a></li> }
+                                    else if (!_canReadAdministrators) { <li><a class="dropdown-item disabled" href="/">Администраторы</a></li> }
 
-                                    @if (_canReadOrganizations)
-                                    {
-                                        <li><a class="dropdown-item" href="/organizations">Организации</a></li>
-                                    }
-                                    else if (!_canReadOrganizations)
-                                    {
-                                        <li><a class="dropdown-item disabled" href="/">Организации</a></li>
-                                    }
+                                    @if (_canReadOrganizations) { <li><a class="dropdown-item" href="/organizations">Организации</a></li> }
+                                    else if (!_canReadOrganizations) { <li><a class="dropdown-item disabled" href="/">Организации</a></li> }
 
-                                    @if (_canReadBranches)
-                                    {
-                                        <li><a class="dropdown-item" href="/branches">Филиалы</a></li>
-                                    }
-                                    else if (!_canReadBranches)
-                                    {
-                                        <li><a class="dropdown-item disabled" href="/">Филиалы</a></li>
-                                    }
+                                    @if (_canReadBranches) { <li><a class="dropdown-item" href="/branches">Филиалы</a></li> }
+                                    else if (!_canReadBranches) { <li><a class="dropdown-item disabled" href="/">Филиалы</a></li> }
 
-                                    @if (_canReadDirectors)
-                                    {
-                                        <li><a class="dropdown-item" href="/directors">Директора</a></li>
-                                    }
-                                    else if (!_canReadDirectors)
-                                    {
-                                        <li><a class="dropdown-item disabled" href="/">Директора</a></li>
-                                    }
+                                    @if (_canReadDirectors) { <li><a class="dropdown-item" href="/directors">Директора</a></li> }
+                                    else if (!_canReadDirectors) { <li><a class="dropdown-item disabled" href="/">Директора</a></li> }
 
-                                    @if (_canReadSubscriptions)
-                                    {
-                                        <li><a class="dropdown-item" href="/subscriptions">Подписки</a></li>
-                                    }
-                                    else if (!_canReadSubscriptions)
-                                    {
-                                        <li><a class="dropdown-item disabled" href="/">Подписки</a></li>
-                                    }
+                                    @if (_canReadSubscriptions) { <li><a class="dropdown-item" href="/subscriptions">Подписки</a></li> }
+                                    else if (!_canReadSubscriptions) { <li><a class="dropdown-item disabled" href="/">Подписки</a></li> }
 
-                                    @if (_canReadModerators)
-                                    {
-                                        <li><a class="dropdown-item" href="/moderators">Модераторы</a></li>
-                                    }
-                                    else if (!_canReadModerators)
-                                    {
-                                        <li><a class="dropdown-item disabled" href="/">Модераторы</a></li>
-                                    }
+                                    @if (_canReadModerators) { <li><a class="dropdown-item" href="/moderators">Модераторы</a></li> }
+                                    else if (!_canReadModerators) { <li><a class="dropdown-item disabled" href="/">Модераторы</a></li> }
 
                                     @if (_canReadAuditHistory)
                                     {
@@ -110,7 +71,7 @@
                 <AuthorizeView Roles="Admin, Moderator">
                     <Authorized>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            <a class="nav-link dropdown-toggle" href="#" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 Курсы
                             </a>
@@ -132,7 +93,7 @@
                 <AuthorizeView Roles="Admin, Moderator">
                     <Authorized>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            <a class="nav-link dropdown-toggle" href="#" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 Обучение
                             </a>
@@ -153,7 +114,7 @@
                 <AuthorizeView Roles="Employee">
                     <Authorized>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            <a class="nav-link dropdown-toggle" href="#" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 Обучение
                             </a>
@@ -173,7 +134,7 @@
                 <AuthorizeView Roles="Admin, Moderator">
                     <Authorized>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            <a class="nav-link dropdown-toggle" href="#" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 Сотрудники
                             </a>
@@ -196,15 +157,6 @@
                 </AuthorizeView>
             </ul>
             <div class="d-flex align-items-center">
-                @*<form class="d-flex me-3">
-                    <div class="input-group input-group-sm">
-                        <input class="form-control border-end-0" type="search" placeholder="Найти..." aria-label="Search">
-                        <button class="btn btn-outline-secondary border-start-0" type="submit">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </div>
-                </form>*@
-
                 <UserProfileModal/>
             </div>
         </div>
