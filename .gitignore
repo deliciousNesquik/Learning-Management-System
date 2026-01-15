@@ -4,3 +4,6 @@
 *.njsproj
 *.sln
 *.sw?
+.idea*
+obj*
+bin*
