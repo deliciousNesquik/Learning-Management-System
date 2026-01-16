@@ -24,46 +24,31 @@
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 Администрирование
                             </a>
-                            @if (!_canReadAdministrators && !_canReadOrganizations && !_canReadSubscriptions && !_canReadModerators && !_canReadAuditHistory)
-                            {
-                                <li><a class="dropdown-item disabled" href="/">Администраторы</a></li>
-                                <li><a class="dropdown-item disabled" href="/">Организации</a></li>
-                                <li><a class="dropdown-item disabled" href="/">Директора</a></li>
-                                <li><a class="dropdown-item disabled" href="/">Подписки</a></li>
-                                <li><a class="dropdown-item disabled" href="/">Модераторы</a></li>
-                                
-                                <li> <hr class="dropdown-divider"> </li>
-                                
-                                <li><a class="dropdown-item disabled" href="/">История изменения таблиц</a></li>
-                            }
-                            else
-                            {
-                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    @if (_canReadAdministrators) { <li><a class="dropdown-item" href="/administrators">Администраторы</a></li> }
-                                    else if (!_canReadAdministrators) { <li><a class="dropdown-item disabled" href="/">Администраторы</a></li> }
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                @if (_canReadAdministrators) { <li><a class="dropdown-item" href="/administrators">Администраторы</a></li> }
+                                else if (!_canReadAdministrators) { <li><a class="dropdown-item disabled" href="/">Администраторы</a></li> }
 
-                                    @if (_canReadOrganizations) { <li><a class="dropdown-item" href="/organizations">Организации</a></li> }
-                                    else if (!_canReadOrganizations) { <li><a class="dropdown-item disabled" href="/">Организации</a></li> }
+                                @if (_canReadOrganizations) { <li><a class="dropdown-item" href="/organizations">Организации</a></li> }
+                                else if (!_canReadOrganizations) { <li><a class="dropdown-item disabled" href="/">Организации</a></li> }
 
-                                    @if (_canReadBranches) { <li><a class="dropdown-item" href="/branches">Филиалы</a></li> }
-                                    else if (!_canReadBranches) { <li><a class="dropdown-item disabled" href="/">Филиалы</a></li> }
+                                @if (_canReadBranches) { <li><a class="dropdown-item" href="/branches">Филиалы</a></li> }
+                                else if (!_canReadBranches) { <li><a class="dropdown-item disabled" href="/">Филиалы</a></li> }
 
-                                    @if (_canReadDirectors) { <li><a class="dropdown-item" href="/directors">Директора</a></li> }
-                                    else if (!_canReadDirectors) { <li><a class="dropdown-item disabled" href="/">Директора</a></li> }
+                                @if (_canReadDirectors) { <li><a class="dropdown-item" href="/directors">Директора</a></li> }
+                                else if (!_canReadDirectors) { <li><a class="dropdown-item disabled" href="/">Директора</a></li> }
 
-                                    @if (_canReadSubscriptions) { <li><a class="dropdown-item" href="/subscriptions">Подписки</a></li> }
-                                    else if (!_canReadSubscriptions) { <li><a class="dropdown-item disabled" href="/">Подписки</a></li> }
+                                @if (_canReadSubscriptions) { <li><a class="dropdown-item" href="/subscriptions">Подписки</a></li> }
+                                else if (!_canReadSubscriptions) { <li><a class="dropdown-item disabled" href="/">Подписки</a></li> }
 
-                                    @if (_canReadModerators) { <li><a class="dropdown-item" href="/moderators">Модераторы</a></li> }
-                                    else if (!_canReadModerators) { <li><a class="dropdown-item disabled" href="/">Модераторы</a></li> }
+                                @if (_canReadModerators) { <li><a class="dropdown-item" href="/moderators">Модераторы</a></li> }
+                                else if (!_canReadModerators) { <li><a class="dropdown-item disabled" href="/">Модераторы</a></li> }
 
-                                    @if (_canReadAuditHistory)
-                                    {
-                                        <li> <hr class="dropdown-divider"> </li>
-                                        <li><a class="dropdown-item" href="/auditHistory">История изменения таблиц</a></li>
-                                    }
+                                @if (_canReadAuditHistory)
+                                {
+                                    <li> <hr class="dropdown-divider"> </li>
+                                    <li><a class="dropdown-item" href="/auditHistory">История изменения таблиц</a></li>
+                                }
                                 </ul>
-                            }
                         </li>
                     </Authorized>
                 </AuthorizeView>
