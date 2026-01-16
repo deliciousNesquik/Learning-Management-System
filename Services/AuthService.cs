@@ -44,7 +44,7 @@ public class AuthService(
             new(ClaimTypes.Role, role),                    // role пользователя.
             new(ClaimTypes.Surname, surname),              // surname пользователя.
             new(ClaimTypes.Name, name),                    // name пользователя.
-            new(ClaimTypes.GivenName, patronymic!)         // patronymic/given_name пользователя.
+            new(ClaimTypes.GivenName, patronymic ?? "")         // patronymic/given_name пользователя.
         };
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         return new ClaimsPrincipal(identity);
