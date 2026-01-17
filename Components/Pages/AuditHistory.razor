@@ -7,7 +7,6 @@
 
 @inject UserSessionAccessor UserSessionAccessor
 @inject NavigationManager NavigationManager
-@inject UserPermissions UserPermissions
 @inject IAuditHistoryService AuditHistoryService
 
 @page "/auditHistory"
@@ -67,7 +66,6 @@ else
     private PagedResult<AuditHistoryListItemVm> _page = new();
     private List<TableColumn<AuditHistoryListItemVm>> _columns = [];
     
-    
     // Флаги состояния и прав
     private bool _isLoaded;
     private bool _canRead;
@@ -96,8 +94,8 @@ else
             new TableColumn<AuditHistoryListItemVm> { Title = "Имя таблицы", Value = a => a.TableName, Sortable = true, SortKey = "table_name" },
             new TableColumn<AuditHistoryListItemVm> { Title = "UUID записи", Value = a => a.RecordUuid.ToString(), Sortable = true, SortKey = "record_uuid" },
             new TableColumn<AuditHistoryListItemVm> { Title = "Действие", Value = a => a.Action.ToString(), Sortable = true, SortKey = "action" },
-            new TableColumn<AuditHistoryListItemVm> { Title = "Старые данные", Value = a => (a.OldData == null ? "Нет данных" : a.OldData), Sortable = true, SortKey = "old_data" },
-            new TableColumn<AuditHistoryListItemVm> { Title = "Новые данные", Value = a => (a.NewData == null ? "Нет данных" : a.NewData), Sortable = true, SortKey = "new_data" },
+            new TableColumn<AuditHistoryListItemVm> { Title = "Старые данные", Value = a => a.OldData ?? "Нет данных", Sortable = true, SortKey = "old_data" },
+            new TableColumn<AuditHistoryListItemVm> { Title = "Новые данные", Value = a => a.NewData ?? "Нет данных", Sortable = true, SortKey = "new_data" },
             new TableColumn<AuditHistoryListItemVm> { Title = "Изменено", Value = a => a.ChangedAt, Sortable = true, SortKey = "changed_at" },
             new TableColumn<AuditHistoryListItemVm> { Title = "Кем изменено", Value = a => a.ChangedBy.ToString(), Sortable = true, SortKey = "changed_by" }
         ];

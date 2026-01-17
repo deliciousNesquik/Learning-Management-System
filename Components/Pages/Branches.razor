@@ -10,7 +10,6 @@
 @rendermode InteractiveServer
 @inject UserSessionAccessor UserSessionAccessor
 @inject NavigationManager NavigationManager
-@inject UserPermissions UserPermissions
 @inject IBranchService BranchService
 @inject IOrganizationService OrganizationService
 
@@ -87,7 +86,7 @@ else
                             <label class="form-label small fw-bold">Организация</label>
                             <InputSelect @bind-Value="_createModel.OrganizationUuid" class="form-select bg-light">
                                 <option value="">-- Выберите организацию --</option>
-                                @foreach (var form in allOrganizations)
+                                @foreach (var form in _allOrganizations)
                                 {
                                     <option value="@form.Uuid">@form.Name</option>
                                 }
@@ -141,12 +140,20 @@ else
                             <input class="form-control bg-light" @bind="_createModel.HouseNumber" placeholder="Номер дома"/>
                             <ValidationMessage For="@(() => _createModel.HouseNumber)" class="text-danger small"/>
                         </div>
+                        
+                        @* --- БЛОК ОШИБКИ --- *@
+                        @if (!string.IsNullOrEmpty(_errorMessage))
+                        {
+                            <div class="alert alert-danger small py-2" role="alert">
+                                <i class="bi bi-x-circle me-2"></i> @_errorMessage
+                            </div>
+                        }
 
                     </div>
                     <div class="modal-footer bg-light border-0">
                         <button type="button" class="btn btn-secondary btn-sm" @onclick="() => _showAddModal = false">Отмена</button>
-                        <button type="submit" class="btn btn-primary btn-sm px-4" disabled="@isProcessing">
-                            @if (isProcessing) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                        <button type="submit" class="btn btn-primary btn-sm px-4" disabled="@_isProcessing">
+                            @if (_isProcessing) { <span class="spinner-border spinner-border-sm me-2"></span> }
                             Создать
                         </button>
                     </div>
@@ -163,7 +170,7 @@ else
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold">Редактирование: @selectedName</h5>
+                    <h5 class="modal-title fw-bold">Редактирование: @_selectedObjectTitle</h5>
                 </div>
                 <EditForm Model="_editModel" OnValidSubmit="HandleUpdate">
                     <DataAnnotationsValidator />
@@ -173,7 +180,7 @@ else
                             <label class="form-label small fw-bold">Организация</label>
                             <InputSelect @bind-Value="_editModel.OrganizationUuid" class="form-select bg-light">
                                 <option value="">-- Выберите организацию --</option>
-                                @foreach (var form in allOrganizations)
+                                @foreach (var form in _allOrganizations)
                                 {
                                     <option value="@form.Uuid">@form.Name</option>
                                 }
@@ -232,12 +239,20 @@ else
                             <input class="form-control bg-light" @bind="_editModel.HouseNumber" placeholder="Номер дома"/>
                             <ValidationMessage For="@(() => _editModel.HouseNumber)" class="text-danger small"/>
                         </div>
+                        
+                        @* --- БЛОК ОШИБКИ --- *@
+                        @if (!string.IsNullOrEmpty(_errorMessage))
+                        {
+                            <div class="alert alert-danger small py-2" role="alert">
+                                <i class="bi bi-x-circle me-2"></i> @_errorMessage
+                            </div>
+                        }
 
                     </div>
                     <div class="modal-footer bg-light border-0">
                         <button type="button" class="btn btn-secondary btn-sm" @onclick="() => _showEditModal = false">Отмена</button>
-                        <button type="submit" class="btn btn-primary btn-sm px-4" disabled="@isProcessing">
-                            @if (isProcessing) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                        <button type="submit" class="btn btn-primary btn-sm px-4" disabled="@_isProcessing">
+                            @if (_isProcessing) { <span class="spinner-border spinner-border-sm me-2"></span> }
                             Сохранить
                         </button>
                     </div>
@@ -250,34 +265,32 @@ else
 <ConfirmDeleteModal 
     IsVisible="_showDeleteModal"
     Title="Удалить филиал?"
-    ItemName="@selectedName"
-    IsProcessing="isProcessing"
+    ItemName="@_selectedObjectTitle"
+    IsProcessing="_isProcessing"
     OnConfirm="HandleDelete"
     OnCancel="() => _showDeleteModal = false"
-    ErrorMessage="@errorMessage"/>
+    ErrorMessage="@_errorMessage"/>
 
 @code {
     private bool _isLoaded;
-    private bool isProcessing;
+    private bool _isProcessing;
+    private bool _isSaved;
     private bool _canRead, _canInsert, _canUpdate, _canDelete;
     
-    private TableQuery _query = new() { PageSize = 10 };
+    private TableQuery _query = new();
     private PagedResult<BranchListItemVm> _page = new();
-    private List<TableColumn<BranchListItemVm>> _columns = new();
-    private List<OrganizationNamesLookupVm> allOrganizations = new();
+    private List<TableColumn<BranchListItemVm>> _columns = [];
+    private List<OrganizationNamesLookupVm> _allOrganizations = [];
     
     // Состояния модалок
     private bool _showAddModal, _showEditModal, _showDeleteModal;
     
     // Модели
-    private CreateBranchVm _createModel = new();
-    private EditBranchVm _editModel = new();
-    private Guid selectedUuid;
-    private string selectedFullName = "";
-    private bool isSaved;
-    private Guid _selectedUuid;
-    private string selectedName = "";
-    private string? errorMessage;
+    private CreateBranchVm? _createModel = new();
+    private EditBranchVm? _editModel = new();
+    private Guid _selectedObjectUuid;
+    private string _selectedObjectTitle = "";
+    private string? _errorMessage;
     
     protected override async Task OnInitializedAsync()
     {
@@ -292,34 +305,30 @@ else
 
         if (_canRead)
         {
-            await LoadInitialData();
+            DefineTableColumns();
+            await LoadData(_query);
+            
+            _allOrganizations = await OrganizationService.GetAllOrganizationsNamesAsync();
         }
         _isLoaded = true;
-    }
-
-    private async Task LoadInitialData()
-    {
-        allOrganizations = await OrganizationService.GetAllOrganizationsNamesAsync();
-        DefineTableColumns();
-        await LoadData(_query);
     }
     
     private void DefineTableColumns()
     {
         _columns =
         [
-            new() { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
-            new() { Title = "Филиал", Value = a => a.Name, Sortable = true, SortKey = "name" },
-            new() { Title = "Организация", Value = a => a.OrganizationName, Sortable = true, SortKey = "organization_name" },
-            new() { Title = "По умолчанию", Value = a => (a.IsDefault == true ? "Да" : "Нет"), Sortable = true, SortKey = "is_default" },
-            new() { Title = "Код филиала", Value = a => a.BranchCode, Sortable = true, SortKey = "branch_code" },
-            new() { Title = "Состояние", Value = a => a.Status ? "Активен" : "Отключен", Sortable = true, SortKey = "status" },
-            new() { Title = "Регион", Value = a => a.Region, Sortable = true, SortKey = "region" },
-            new() { Title = "Город", Value = a => a.City, Sortable = true, SortKey = "city" },  
-            new() { Title = "Улица", Value = a => a.Street, Sortable = true, SortKey = "street" },
-            new() { Title = "Дом", Value = a => a.HouseNumber, Sortable = true, SortKey = "house_number" },
-            new() { Title = "Когда создано", Value = a => a.CreatedAt, Sortable = true, SortKey = "created_at" },
-            new() { Title = "Часовой пояс", Value = a => a.Timezone, Sortable = true, SortKey = "timezone" },
+            new TableColumn<BranchListItemVm> { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
+            new TableColumn<BranchListItemVm> { Title = "Филиал", Value = a => a.Name, Sortable = true, SortKey = "name" },
+            new TableColumn<BranchListItemVm> { Title = "Организация", Value = a => a.OrganizationName, Sortable = true, SortKey = "organization_name" },
+            new TableColumn<BranchListItemVm> { Title = "По умолчанию", Value = a => (a.IsDefault == true ? "Да" : "Нет"), Sortable = true, SortKey = "is_default" },
+            new TableColumn<BranchListItemVm> { Title = "Код филиала", Value = a => a.BranchCode, Sortable = true, SortKey = "branch_code" },
+            new TableColumn<BranchListItemVm> { Title = "Состояние", Value = a => a.Status ? "Активен" : "Отключен", Sortable = true, SortKey = "status" },
+            new TableColumn<BranchListItemVm> { Title = "Регион", Value = a => a.Region, Sortable = true, SortKey = "region" },
+            new TableColumn<BranchListItemVm> { Title = "Город", Value = a => a.City, Sortable = true, SortKey = "city" },  
+            new TableColumn<BranchListItemVm> { Title = "Улица", Value = a => a.Street, Sortable = true, SortKey = "street" },
+            new TableColumn<BranchListItemVm> { Title = "Дом", Value = a => a.HouseNumber, Sortable = true, SortKey = "house_number" },
+            new TableColumn<BranchListItemVm> { Title = "Когда создано", Value = a => a.CreatedAt, Sortable = true, SortKey = "created_at" },
+            new TableColumn<BranchListItemVm> { Title = "Часовой пояс", Value = a => a.Timezone, Sortable = true, SortKey = "timezone" },
         ];
         
         if (_canUpdate || _canDelete)
@@ -344,25 +353,54 @@ else
     
     private void OpenAddModal()
     {
+        if (!_canInsert)
+        {
+            _errorMessage = "Ошибка доступа. У вас нет прав на создание.";
+            return;
+        }
+        _errorMessage = null;
         _createModel = new CreateBranchVm() {};
         _showAddModal = true;
     }
     
     private async Task HandleCreate()
     {
-        isProcessing = true;
-        var result = await BranchService.CreateAsync(_createModel);
-        if (result.IsSuccess)
+        if (!_canInsert)
         {
-            _showAddModal = false;
-            await LoadInitialData();
+            _errorMessage = "Ошибка доступа. У вас нет прав на создание.";
+            return;
         }
-        isProcessing = false;
+        try
+        {
+            if (_createModel != null)
+            {
+                var result = await BranchService.CreateAsync(_createModel);
+                if (result.IsSuccess)
+                {
+                    _isSaved = true; await LoadData(_query);
+                }
+                else
+                {
+                    _errorMessage = result.ErrorCode;
+                }
+            }
+            else
+            {
+                _errorMessage = "Ошибка на стороне сервера. Пожалуйста перезагрузите страницу и попробуйте заново. Если не поможет обратитесь в поддержку";
+            }
+        }
+        catch { _errorMessage = "Ошибка на стороне сервера. Пожалуйста перезагрузите страницу и попробуйте заново. Если не поможет обратитесь в поддержку"; }
+        finally { _isProcessing = false; }
     }
 
     private void OpenEditModal(BranchListItemVm mod)
     {
-        selectedName = mod.Name;
+        if (!_canInsert)
+        {
+            _errorMessage = "Ошибка доступа. У вас нет прав на изменение.";
+            return;
+        }
+        _selectedObjectTitle = mod.Name;
         _editModel = new EditBranchVm() 
         { 
             Uuid = mod.Uuid,
@@ -382,39 +420,67 @@ else
 
     private async Task HandleUpdate()
     {
-        isProcessing = true;
-        var result = await BranchService.UpdateAsync(_editModel);
-        if (result.IsSuccess)
+        if (!_canInsert)
         {
-            _showEditModal = false;
-            await LoadData(_query);
+            _errorMessage = "Ошибка доступа. У вас нет прав на изменение.";
+            return;
         }
-        isProcessing = false;
+        _isProcessing = true;
+        try
+        {
+            if (_editModel != null)
+            {
+                var result = await BranchService.UpdateAsync(_editModel);
+                if (result.IsSuccess)
+                {
+                    _showEditModal = false;
+                    await LoadData(_query);
+                }
+                else
+                {
+                    _errorMessage = result.ErrorCode;
+                }
+            }
+            else
+            {
+                _errorMessage = "Ошибка на стороне сервера. Пожалуйста перезагрузите страницу и попробуйте заново. Если не поможет обратитесь в поддержку";
+            }
+        }
+        catch { _errorMessage = "Ошибка на стороне сервера. Пожалуйста перезагрузите страницу и попробуйте заново. Если не поможет обратитесь в поддержку"; }
+        finally { _isProcessing = false; }
     }
 
     private void ConfirmDelete(BranchListItemVm mod)
     {
-        _selectedUuid = mod.Uuid;
-        selectedName = mod.Name;
+        if (!_canDelete)
+        {
+            _errorMessage = "Ошибка доступа. У вас нет прав на удаление.";
+            return;
+        }
+        _selectedObjectUuid = mod.Uuid;
+        _selectedObjectTitle = mod.Name;
         _showDeleteModal = true;
-        errorMessage = null;
+        _errorMessage = null;
     }
 
     private async Task HandleDelete()
     {
-        isProcessing = true;
-        var result = await BranchService.DeleteAsync(_selectedUuid);
+        if (!_canDelete)
+        {
+            _errorMessage = "Ошибка доступа. У вас нет прав на удаление.";
+            return;
+        }
+        _isProcessing = true;
+        var result = await BranchService.DeleteAsync(_selectedObjectUuid);
         if (result.IsSuccess)
         {
             _showDeleteModal = false;
-            await LoadInitialData();
+            await LoadData(_query);
         }
         else
         {
-            // Выводим текст ошибки из результата сервиса
-            // В зависимости от вашего DeleteUserResult, свойство может называться Message или Error
-            errorMessage = result.ErrorCode; 
+            _errorMessage = result.ErrorCode; 
         }
-        isProcessing = false;
+        _isProcessing = false;
     }
 }

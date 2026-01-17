@@ -20,10 +20,10 @@ public class AuditHistory
     public string Action { get; init; }
     
     [Column("old_data")] 
-    public string OldData { get; init; }
+    public string? OldData { get; init; }
     
     [Column("new_data")] 
-    public string NewData { get; init; }
+    public string? NewData { get; init; }
     
     [Column("changed_at")] 
     public DateTime ChangedAt { get; init; }

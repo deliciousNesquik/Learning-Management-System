@@ -112,7 +112,7 @@ else
                 </div>
                 @if (!_isSaved)
                 {
-                    <EditForm Model="@_createModel" OnValidSubmit="HandleSave">
+                    <EditForm Model="@_createModel" OnValidSubmit="HandleCreate">
                         <DataAnnotationsValidator/>
                         <div class="modal-body p-4">
                             @*@if (!string.IsNullOrEmpty(errorMessage))
@@ -332,7 +332,7 @@ else
     private bool _isSaved, _isProcessing, _showModal, _showEditModal, _showResetModal, _showDeleteModal, _showPermsModal;
     
     private string? _errorMessage, _plainPassword, _selectedObjectTitle;
-    private Guid _selectedObjectUuid;
+    private Guid? _selectedObjectUuid;
     private int _totalCount, _activeCount, _blockCount;
     
 
@@ -422,21 +422,25 @@ else
 
     private void OpenAddModal()
     {
-        if (!_canInsert) return; 
+        if (!_canInsert)
+        {
+            _errorMessage = "Ошибка доступа. У вас нет прав на создание.";
+            return;
+        }
         _createModel = new CreateAdminVm(); 
         _errorMessage = null; 
         _isSaved = false; 
         _showModal = true;
     }
     
-    private async Task HandleSave()
+    private async Task HandleCreate()
     {
         if (!_canInsert)
         {
             _errorMessage = "Ошибка доступа. У вас нет прав на создание.";
             return;
         }
-        _isProcessing = true; _errorMessage = null;
+        _isProcessing = true;
         try
         {
             if (_createModel != null)
@@ -462,7 +466,11 @@ else
     
     private void OpenEditModal(AdminListItemVm admin)
     {
-        if (!_canUpdate) return;
+        if (!_canUpdate)
+        {
+            _errorMessage = "Ошибка доступа. У вас нет прав на изменение.";
+            return;
+        }
         _editModel = new EditAdminVm
         {
             Uuid = admin.Uuid, 
@@ -510,7 +518,12 @@ else
 
     private void OpenResetPassword(AdminListItemVm admin)
     {
-        if (!_canUpdate) return;
+        if (!_canUpdate)
+        {
+            _errorMessage = "Ошибка доступа. У вас нет прав на изменение пароля.";
+            return;
+        }
+        
         _selectedObjectUuid = admin.Uuid; 
         _plainPassword = ""; 
         _isSaved = false; 
@@ -520,50 +533,121 @@ else
     private async Task HandleResetPassword()
     {
         if (!_canUpdate || string.IsNullOrWhiteSpace(_plainPassword)) return;
+        _errorMessage = null;
         _isProcessing = true;
-        await AdminService.ResetPasswordAsync(_selectedObjectUuid, _plainPassword);
+        await AdminService.ResetPasswordAsync((Guid)_selectedObjectUuid, _plainPassword);
         _isSaved = true;
         _isProcessing = false;
     }
     
     private async Task HandleDelete()
     {
-        _errorMessage = null; // Сбрасываем старую ошибку перед началом
-        _isProcessing = true;
-        
-        var result = await AdminService.DeleteAsync(_selectedObjectUuid);
-        
-        if (result.IsSuccess)
+        if (!_canDelete)
         {
-            _showDeleteModal = false;
-            await LoadData(_query); // Обновляем таблицу
+            _errorMessage = "Ошибка доступа. У вас нет прав на удаление.";
+            return;
         }
-        else
+        try
         {
-            // Выводим текст ошибки из результата сервиса
-            // В зависимости от вашего DeleteUserResult, свойство может называться Message или Error
-            _errorMessage = result.ErrorCode; 
+            if (_selectedObjectUuid != null)
+            {
+                var result = await AdminService.DeleteAsync((Guid)_selectedObjectUuid);
+                if (result.IsSuccess)
+                {
+                    _showDeleteModal = false;
+                    await LoadData(_query); await LoadStats();
+                }
+                else
+                {
+                    _errorMessage = result.ErrorCode;
+                }
+            }
+            else
+            {
+                _errorMessage = "Ошибка на стороне сервера. Пожалуйста перезагрузите страницу и попробуйте заново. Если не поможет обратитесь в поддержку";
+            }
         }
-        
-        _isProcessing = false;
+        catch { _errorMessage = "Ошибка на стороне сервера. Пожалуйста перезагрузите страницу и попробуйте заново. Если не поможет обратитесь в поддержку"; }
+        finally { _isProcessing = false; }
     }
     
     private void ConfirmDelete(AdminListItemVm admin)
     {
-        if (_canDelete)
+        if (!_canDelete)
+        {
+            _errorMessage = "Ошибка доступа. У вас нет прав на удаление.";
+            return;
+        }
+
+        try
         {
             _selectedObjectUuid = admin.Uuid;
             _selectedObjectTitle = admin.Login;
+        }
+        catch (NullReferenceException)
+        {
+            _errorMessage = "Ошибка получения данных. Пожалуйста перезагрузите страницу и попробуйте заново. Если не поможет обратитесь в поддержку";
+        }
+        finally
+        {
             _showDeleteModal = true;
             _errorMessage = null;
         }
+        
     }
     
 
     // --- ПРАВА ---
-    private async Task OpenPermissions(AdminListItemVm admin) { if (_canUpdate) { _selectedObjectTitle = admin.Login; _selectedObjectUuid = admin.Uuid; _listAvailablePermissions = await UserPermissions.GetPermissionsAsync(admin.Uuid, true); _showPermsModal = true; } }
-    private async Task SavePermissions(List<TablePermissionVm> perms) { if (!_canUpdate) return; _isProcessing = true; await UserPermissions.UpdatePermissionsAsync(_selectedObjectUuid, perms); _showPermsModal = false; _isProcessing = false; }
+    private async Task OpenPermissions(AdminListItemVm admin)
+    {
+        if (_canUpdate)
+        {
+            try
+            {
+                _selectedObjectTitle = admin.Login;
+                _selectedObjectUuid = admin.Uuid;
 
-    private async Task CopyToClipboard(string text) => await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
-    private void CloseAddModal() { _showModal = false; _isSaved = false; }
+                if (_selectedObjectUuid != null)
+                {
+                    _listAvailablePermissions = await UserPermissions.GetPermissionsAsync((Guid)_selectedObjectUuid, true);
+                    _showPermsModal = true;
+                }
+                else
+                {
+                    _errorMessage = "Ошибка на стороне сервера. Пожалуйста перезагрузите страницу и попробуйте заново. Если не поможет обратитесь в поддержку";
+                }
+            }
+            catch (NullReferenceException)
+            {
+                _errorMessage = "Ошибка получения данных. Пожалуйста перезагрузите страницу и попробуйте заново. Если не поможет обратитесь в поддержку";
+            }
+        }
+    }
+
+    private async Task SavePermissions(List<TablePermissionVm> perms)
+    {
+        if (!_canUpdate) return;
+
+        if (_selectedObjectUuid == null)
+        {
+            _errorMessage = "Ошибка получения данных. Пожалуйста перезагрузите страницу и попробуйте заново. Если не поможет обратитесь в поддержку";
+            return;
+        }
+        _isProcessing = true;
+        await UserPermissions.UpdatePermissionsAsync((Guid)_selectedObjectUuid, perms);
+        _showPermsModal = false;
+        _isProcessing = false;
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    }
+
+
+    private void CloseAddModal()
+    {
+        _showModal = false;
+        _isSaved = false;
+    }
 }
