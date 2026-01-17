@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-// TODO: Убрать строку подключения в user secrets для develop. Для production использовать environment variable
-
 var builder = WebApplication.CreateBuilder(args);
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -36,7 +34,7 @@ builder.Services.AddScoped<PostgresConnectionInterceptor>();
 builder.Services.AddDbContextFactory<DatabaseContext>((sp, options) =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection"), 
-        o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)); // Добавь эту строку
+        o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
     
     var interceptor = sp.GetRequiredService<PostgresConnectionInterceptor>();
     options.AddInterceptors(interceptor);
