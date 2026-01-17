@@ -20,27 +20,8 @@
 
 @attribute [Authorize(Roles = "Admin")]
 
-@if (!isLoaded)
-{
-    <div class="d-flex justify-content-center align-items-center" style="height: 50vh;">
-        <div class="spinner-border text-primary" role="status"></div>
-    </div>
-}
-else if (!canRead)
-{
-    <div class="container mt-5">
-        <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center p-4">
-            <i class="bi bi-shield-lock-fill fs-1 me-4"></i>
-            <div>
-                <h4 class="alert-heading fw-bold">Доступ ограничен</h4>
-                <p class="mb-0">У вас недостаточно прав для просмотра раздела "Модераторы".</p>
-                <button class="btn btn-outline-danger btn-sm mt-3" @onclick='() => NavigationManager.NavigateTo("/")'>На главную</button>
-            </div>
-        </div>
-    </div>
-}
-else
-{
+
+<AccessControl IsLoaded="isLoaded" CanRead="canRead" PageName="Модераторы">
     <div class="container-fluid px-4 mt-3 animate-fade-in">
         
         @* Статистика *@
@@ -78,8 +59,7 @@ else
                 </div>
             </div>
         </div>
-
-        @* Таблица *@
+        
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3 border-0">
                 <div class="row align-items-center">
@@ -108,9 +88,9 @@ else
             </div>
         </div>
     </div>
-}
+</AccessControl>
 
-@* --- МОДАЛЬНЫЕ ОКНА --- *@
+
 
 @* 1. СОЗДАНИЕ *@
 @if (showAddModal)

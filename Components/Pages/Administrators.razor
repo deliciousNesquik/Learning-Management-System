@@ -17,27 +17,7 @@
 
 @attribute [Authorize(Roles = "Admin")]
 
-@if (!_isLoaded)
-{
-    <div class="d-flex justify-content-center align-items-center" style="height: 50vh;">
-        <div class="spinner-border text-primary" role="status"></div>
-    </div>
-}
-else if (!_canRead)
-{
-    <div class="container mt-5">
-        <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center p-4">
-            <i class="bi bi-shield-lock-fill fs-1 me-4"></i>
-            <div>
-                <h4 class="alert-heading fw-bold">Доступ ограничен</h4>
-                <p class="mb-0">У вас недостаточно прав для просмотра раздела "Администраторы". Обратитесь к системному администратору.</p>
-                <button class="btn btn-outline-danger btn-sm mt-3" @onclick='() => NavigationManager.NavigateTo("/")'>На главную</button>
-            </div>
-        </div>
-    </div>
-}
-else
-{
+<AccessControl IsLoaded="_isLoaded" CanRead="_canRead" PageName="Администраторы">
     <div class="container-fluid px-4 mt-3 animate-fade-in">
         @* Статистика *@
         <div class="row mb-4">
@@ -96,7 +76,8 @@ else
             </div>
         </div>
     </div>
-}
+</AccessControl>
+
 
 @* МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ *@
 @if (_showModal && _canInsert)
@@ -115,13 +96,6 @@ else
                     <EditForm Model="@_createModel" OnValidSubmit="HandleCreate">
                         <DataAnnotationsValidator/>
                         <div class="modal-body p-4">
-                            @*@if (!string.IsNullOrEmpty(errorMessage))
-                            {
-                                <div class="alert alert-danger border-0 small d-flex align-items-center">
-                                    <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i> @errorMessage
-                                </div>
-                            }*@
-                            
                             <div class="mb-4">
                                 <label class="form-label fw-bold small text-muted">ЛОГИН</label>
                                 <div class="input-group custom-input-group">

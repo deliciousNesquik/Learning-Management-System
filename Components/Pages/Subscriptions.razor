@@ -18,27 +18,7 @@
 
 @attribute [Authorize(Roles = "Admin")]
 
-@if (!_isLoaded)
-{
-    <div class="d-flex justify-content-center align-items-center" style="height: 50vh;">
-        <div class="spinner-border text-primary" role="status"></div>
-    </div>
-}
-else if (!canRead)
-{
-    <div class="container mt-5">
-        <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center p-4">
-            <i class="bi bi-shield-lock-fill fs-1 me-4"></i>
-            <div>
-                <h4 class="alert-heading fw-bold">Доступ ограничен</h4>
-                <p class="mb-0">У вас недостаточно прав для просмотра раздела "Подписки".</p>
-                <button class="btn btn-outline-danger btn-sm mt-3" @onclick='() => NavigationManager.NavigateTo("/")'>На главную</button>
-            </div>
-        </div>
-    </div>
-}
-else
-{
+<AccessControl IsLoaded="_isLoaded" CanRead="canRead" PageName="Подписки">
     <div class="container-fluid px-4 mt-3 animate-fade-in">
 
         @* Таблица *@
@@ -70,7 +50,8 @@ else
             </div>
         </div>
     </div>
-}
+</AccessControl>
+
 
 @* Модальное окно ДОБАВЛЕНИЯ *@
 @if (_showAddModal)
