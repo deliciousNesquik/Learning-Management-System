@@ -386,7 +386,7 @@
                     var url = $"/organizations?search={item.OrganizationUuid}";
                     builder.OpenElement(0, "a");
                     builder.AddAttribute(1, "href", url);
-                    builder.AddAttribute(2, "class", "text-decoration-none fw-bold");
+                    builder.AddAttribute(2, "class", "badge bg-primary text-decoration-none me-1");
                     builder.AddContent(3, item.OrganizationName);
                     builder.CloseElement();
                 }
