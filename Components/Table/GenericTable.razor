@@ -1,5 +1,6 @@
 @inject IJSRuntime JSRuntime
 
+@using System.Text.Json
 @typeparam TItem
 
 <div class="card shadow-sm">
@@ -156,43 +157,69 @@
 }
 
 @code {
-    [Parameter, EditorRequired]
-    public PagedResult<TItem> Data { get; set; } = default!;
-
-    [Parameter, EditorRequired]
-    public List<TableColumn<TItem>> Columns { get; set; } = [];
-
-    [Parameter, EditorRequired]
-    public TableQuery Query { get; set; } = new();
-
-    [Parameter, EditorRequired]
-    public EventCallback<TableQuery> OnQueryChanged { get; set; }
+    [Parameter, EditorRequired] public string StorageKey { get; set; } = "";
+    [Parameter, EditorRequired] public PagedResult<TItem> Data { get; set; } = default!;
+    [Parameter, EditorRequired] public List<TableColumn<TItem>> Columns { get; set; } = [];
+    [Parameter, EditorRequired] public TableQuery Query { get; set; } = new();
+    [Parameter, EditorRequired] public EventCallback<TableQuery> OnQueryChanged { get; set; }
     
     private bool _showColumnModal;
     private HashSet<string> _visibleColumnKeys = [];
+    private bool _isFirstRender = true;
     
     // Вычисляем общее количество страниц
     private int TotalPages => (int)Math.Ceiling((double)Data.TotalCount / Query.PageSize);
     
-    protected override void OnParametersSet()
+    /*protected override void OnParametersSet()
     {
         // Инициализируем видимые колонки всеми доступными при первом запуске
         if (_visibleColumnKeys.Count == 0)
         {
             _visibleColumnKeys = Columns.Select(c => c.SortKey ?? c.Title).ToHashSet();
         }
+    }*/
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(StorageKey))
+        {
+            // 2. Загружаем сохраненные колонки из localStorage
+            var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"table_cols_{StorageKey}");
+            if (!string.IsNullOrEmpty(json))
+            {
+                var savedKeys = JsonSerializer.Deserialize<List<string>>(json);
+                if (savedKeys != null && savedKeys.Any())
+                {
+                    _visibleColumnKeys = savedKeys.ToHashSet();
+                    StateHasChanged(); // Перерисовываем с новыми колонками
+                }
+            }
+            else
+            {
+                // Если в хранилище ничего нет, показываем всё по умолчанию
+                _visibleColumnKeys = Columns.Select(c => c.SortKey ?? c.Title).ToHashSet();
+                StateHasChanged();
+            }
+        }
     }
-    
-    private void OpenColumnSettings() => _showColumnModal = true;
-    
-    private void ToggleColumn(string key, object? isChecked)
+
+    private async Task ToggleColumn(string key, object? isChecked)
     {
         if (isChecked is bool check)
         {
             if (check) _visibleColumnKeys.Add(key);
-            else if (_visibleColumnKeys.Count > 1) _visibleColumnKeys.Remove(key); // Не даем скрыть все колонки
+            else if (_visibleColumnKeys.Count > 1) _visibleColumnKeys.Remove(key);
+
+            // 3. Сохраняем новое состояние при каждом изменении
+            if (!string.IsNullOrEmpty(StorageKey))
+            {
+                var json = JsonSerializer.Serialize(_visibleColumnKeys);
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", $"table_cols_{StorageKey}", json);
+            }
         }
     }
+    
+    private void OpenColumnSettings() => _showColumnModal = true;
     
     private async Task ExportToCsv()
     {
