@@ -310,6 +310,14 @@
         {
             await LoadInitialData();
         }
+        
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("search", out var searchValue))
+        {
+            _query.Search = searchValue;
+            await LoadData(_query);
+        }
+        
         _isLoaded = true;
     }
 
@@ -325,17 +333,17 @@
     {
         columns =
         [
-            new() { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
+            new() { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = false, SortKey = "uuid" },
             new() { Title = "Форма организации", Value = a => a.LegalFormName, Sortable = true, SortKey = "legal_form" },
-            new() { Title = "Название", Value = a => a.Name, Sortable = true, SortKey = "name" },
-            new() { Title = "ИНН", Value = a => a.Taxpayer, Sortable = true, SortKey = "taxpayer" },
-            new() { Title = "Почта", Value = a => a.Mail, Sortable = true, SortKey = "mail" },
-            new() { Title = "Контакты", Value = a => a.Contacts, Sortable = true, SortKey = "contacts" },
-            new() { Title = "Регион", Value = a => a.Region, Sortable = true, SortKey = "region" },
-            new() { Title = "Город", Value = a => a.City, Sortable = true, SortKey = "city" },
-            new() { Title = "Улица", Value = a => a.Street, Sortable = true, SortKey = "street" },
-            new() { Title = "Дом", Value = a => a.HouseNumber, Sortable = true, SortKey = "house_number" },
-            new() { Title = "Кол-во филиалов", Value = a => a.CountBranches, Sortable = true, SortKey = "count_branches" },
+            new() { Title = "Название", Value = a => a.Name, Sortable = false, SortKey = "name" },
+            new() { Title = "ИНН", Value = a => a.Taxpayer, Sortable = false, SortKey = "taxpayer" },
+            new() { Title = "Почта", Value = a => a.Mail, Sortable = false, SortKey = "mail" },
+            new() { Title = "Контакты", Value = a => a.Contacts, Sortable = false, SortKey = "contacts" },
+            new() { Title = "Регион", Value = a => a.Region, Sortable = false, SortKey = "region" },
+            new() { Title = "Город", Value = a => a.City, Sortable = false, SortKey = "city" },
+            new() { Title = "Улица", Value = a => a.Street, Sortable = false, SortKey = "street" },
+            new() { Title = "Дом", Value = a => a.HouseNumber, Sortable = false, SortKey = "house_number" },
+            new() { Title = "Кол-во филиалов", Value = a => a.CountBranches, Sortable = false, SortKey = "count_branches" },
             
         ];
         

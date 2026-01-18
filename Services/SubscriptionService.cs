@@ -18,23 +18,40 @@ public class SubscriptionService(IDbContextFactory<DatabaseContext> dbFactory) :
             .AsNoTracking()
             .Include(s => s.Branch)
             .AsQueryable();
-
-        // Поиск по названию подписки или названию филиала
+        
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var search = query.Search.Trim().ToLower();
             q = q.Where(s => 
-                s.Name.ToLower().Contains(search) || 
-                s.Branch.Name.ToLower().Contains(search));
+                s.Uuid.ToString().Contains(query.Search) ||
+                s.Name.Contains(query.Search) ||
+                s.BranchUuid.ToString().Contains(query.Search) ||
+                s.Branch.Name.ToString().Contains(query.Search)
+                );
         }
 
         // Сортировка
         q = (query.SortBy?.ToLower(), query.SortDesc) switch
         {
-            ("name", false) => q.OrderBy(s => s.Name),
-            ("name", true) => q.OrderByDescending(s => s.Name),
-            ("enddate", false) => q.OrderBy(s => s.EndDate),
-            ("enddate", true) => q.OrderByDescending(s => s.EndDate),
+            ("start_date", false) => q.OrderBy(s => s.StartDate),
+            ("start_date", true) => q.OrderByDescending(s => s.StartDate),
+            
+            ("end_date", false) => q.OrderBy(s => s.EndDate),
+            ("end_date", true) => q.OrderByDescending(s => s.EndDate),
+            
+            ("limit", false) => q.OrderBy(s => s.EmployeesLimit),
+            ("limit", true) => q.OrderByDescending(s => s.EmployeesLimit),
+            
+            ("status", false) => q.OrderBy(s => s.IsActive),
+            ("status", true) => q.OrderByDescending(s => s.IsActive),
+            
+            ("price", false) => q.OrderBy(s => s.Price),
+            ("price", true) => q.OrderByDescending(s => s.Price),
+            
+            ("count_courses", false) => q.OrderBy(s => s.Courses.Count(c => c.SubscriptionUuid == s.Uuid)),
+            ("count_courses", true) => q.OrderByDescending(s => s.Courses.Count(c => c.SubscriptionUuid == s.Uuid)),
+            
+            ("created_at", false) => q.OrderBy(s => s.CreatedAt),
+            ("created_at", true) => q.OrderByDescending(s => s.CreatedAt),
             _ => q.OrderByDescending(s => s.CreatedAt)
         };
 

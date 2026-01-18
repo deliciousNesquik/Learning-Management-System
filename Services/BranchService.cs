@@ -29,28 +29,28 @@ public class BranchService(IDbContextFactory<DatabaseContext> dbFactory) : IBran
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var search = query.Search.Trim();
 
             q = q.Where(d =>
-                EF.Functions.Like(d.Name, $"%{search}%") ||
-                EF.Functions.Like(d.BranchCode, $"%{search}%") ||
-                EF.Functions.Like(d.City!, $"%{search}%")
+                d.Uuid.ToString().Contains(query.Search) ||
+                d.Name.Contains(query.Search) ||
+                d.OrganizationUuid.ToString().Contains(query.Search) ||
+                //d.Organization.Name.ToString().Contains(query.Search) ||
+                d.BranchCode.Contains(query.Search) 
+                //|| (d.Region + " " + d.City + " " + d.Street + " " + d.HouseNumber).Contains(query.Search)
             );
-
-            // предположение:
-            // если реально нужен поиск по UUID — делать отдельную ветку
         }
 
         q = (query.SortBy, query.SortDesc) switch
         {
-            ("name", false) => q.OrderBy(d => d.Name),
-            ("name", true) => q.OrderByDescending(d => d.Name),
-            ("branch_code", false) => q.OrderBy(d => d.BranchCode),
-            ("branch_code", true) => q.OrderByDescending(d => d.BranchCode),
-            ("city", false) => q.OrderBy(d => d.City),
-            ("city", true) => q.OrderByDescending(d => d.City),
+            ("is_default", false) => q.OrderBy(d => d.IsDefault),
+            ("is_default", true) => q.OrderByDescending(d => d.IsDefault),
+            
+            ("status", false) => q.OrderBy(d => d.Status),
+            ("status", true) => q.OrderByDescending(d => d.Status),
+            
             ("created_at", false) => q.OrderBy(d => d.CreatedAt),
             ("created_at", true) => q.OrderByDescending(d => d.CreatedAt),
+            
             _ => q.OrderByDescending(d => d.CreatedAt)
         };
 
@@ -64,6 +64,7 @@ public class BranchService(IDbContextFactory<DatabaseContext> dbFactory) : IBran
                 Uuid = d.Uuid,
                 Name = d.Name,
                 OrganizationUuid = d.OrganizationUuid,
+                //OrganizationUuid = d.Organization.Uuid,
                 OrganizationName = d.Organization.Name,
                 IsDefault = d.IsDefault,
                 BranchCode = d.BranchCode,

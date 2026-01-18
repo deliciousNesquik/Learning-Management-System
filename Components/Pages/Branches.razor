@@ -11,6 +11,7 @@
 @inject UserSessionAccessor UserSessionAccessor
 @inject IBranchService BranchService
 @inject IOrganizationService OrganizationService
+@inject NavigationManager NavigationManager
 
 @attribute [Authorize(Roles = "Admin")]
 
@@ -288,6 +289,14 @@
             
             _allOrganizations = await OrganizationService.GetAllOrganizationsNamesAsync();
         }
+        
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("search", out var searchValue))
+        {
+            _query.Search = searchValue;
+            await LoadData(_query);
+        }
+        
         _isLoaded = true;
     }
     
@@ -295,18 +304,33 @@
     {
         _columns =
         [
-            new TableColumn<BranchListItemVm> { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
-            new TableColumn<BranchListItemVm> { Title = "Филиал", Value = a => a.Name, Sortable = true, SortKey = "name" },
-            new TableColumn<BranchListItemVm> { Title = "Организация", Value = a => a.OrganizationName, Sortable = true, SortKey = "organization_name" },
-            new TableColumn<BranchListItemVm> { Title = "По умолчанию", Value = a => (a.IsDefault == true ? "Да" : "Нет"), Sortable = true, SortKey = "is_default" },
-            new TableColumn<BranchListItemVm> { Title = "Код филиала", Value = a => a.BranchCode, Sortable = true, SortKey = "branch_code" },
+            new TableColumn<BranchListItemVm> { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = false, SortKey = "uuid" },
+            new TableColumn<BranchListItemVm> { Title = "Филиал", Value = a => a.Name, Sortable = false, SortKey = "name" },
+            new TableColumn<BranchListItemVm> 
+            { 
+                Title = "Организация", 
+                Value = a => a.OrganizationName,
+                Sortable = true, 
+                SortKey = "organization_name",
+                Template = (item) => (builder) => 
+                {
+                    var url = $"/organizations?search={item.OrganizationUuid}";
+                    builder.OpenElement(0, "a");
+                    builder.AddAttribute(1, "href", url);
+                    builder.AddAttribute(2, "class", "badge bg-primary text-decoration-none me-1");
+                    builder.AddContent(3, item.OrganizationName);
+                    builder.CloseElement();
+                }
+            },
+            new TableColumn<BranchListItemVm> { Title = "По умолчанию", Value = a => (a.IsDefault ? "Да" : "Нет"), Sortable = true, SortKey = "is_default" },
+            new TableColumn<BranchListItemVm> { Title = "Код филиала", Value = a => a.BranchCode, Sortable = false, SortKey = "branch_code" },
             new TableColumn<BranchListItemVm> { Title = "Состояние", Value = a => a.Status ? "Активен" : "Отключен", Sortable = true, SortKey = "status" },
-            new TableColumn<BranchListItemVm> { Title = "Регион", Value = a => a.Region, Sortable = true, SortKey = "region" },
-            new TableColumn<BranchListItemVm> { Title = "Город", Value = a => a.City, Sortable = true, SortKey = "city" },  
-            new TableColumn<BranchListItemVm> { Title = "Улица", Value = a => a.Street, Sortable = true, SortKey = "street" },
-            new TableColumn<BranchListItemVm> { Title = "Дом", Value = a => a.HouseNumber, Sortable = true, SortKey = "house_number" },
+            new TableColumn<BranchListItemVm> { Title = "Регион", Value = a => a.Region, Sortable = false, SortKey = "region" },
+            new TableColumn<BranchListItemVm> { Title = "Город", Value = a => a.City, Sortable = false, SortKey = "city" },  
+            new TableColumn<BranchListItemVm> { Title = "Улица", Value = a => a.Street, Sortable = false, SortKey = "street" },
+            new TableColumn<BranchListItemVm> { Title = "Дом", Value = a => a.HouseNumber, Sortable = false, SortKey = "house_number" },
             new TableColumn<BranchListItemVm> { Title = "Когда создано", Value = a => a.CreatedAt, Sortable = true, SortKey = "created_at" },
-            new TableColumn<BranchListItemVm> { Title = "Часовой пояс", Value = a => a.Timezone, Sortable = true, SortKey = "timezone" },
+            new TableColumn<BranchListItemVm> { Title = "Часовой пояс", Value = a => a.Timezone, Sortable = false, SortKey = "timezone" },
         ];
         
         if (_canUpdate || _canDelete)

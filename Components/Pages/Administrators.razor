@@ -46,8 +46,7 @@
                 </div>
             </div>
         </div>
-
-        @* Таблица *@
+        
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3 border-0">
                 <div class="row align-items-center">
@@ -328,6 +327,14 @@
                 await LoadStats();
             }
         }
+        
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("search", out var searchValue))
+        {
+            _query.Search = searchValue;
+            await LoadData(_query);
+        }
+        
         _isLoaded = true;
     }
 
@@ -346,16 +353,15 @@
     {
         _columns =
         [
-            CreateDataColumn("UUID", a => a.Uuid, true, "uuid"),
+            CreateDataColumn("UUID", a => a.Uuid, false, "uuid"),
             CreateDataColumn("Логин", a => a.Login, true, "login"),
             CreateDataColumn("Статус", a => a.IsActive ? "Активен" : "Заблокирован", true, "status"),
-            CreateDataColumn("Фамилия", a => a.Surname, true, "surname"),
-            CreateDataColumn("Имя", a => a.Name, true, "name"),
-            CreateDataColumn("Отчество", a => a.Patronymic, true, "patronymic"),
+            CreateDataColumn("Фамилия", a => a.Surname, false, "surname"),
+            CreateDataColumn("Имя", a => a.Name, false, "name"),
+            CreateDataColumn("Отчество", a => a.Patronymic, false, "patronymic"),
             CreateDataColumn("Дата создания", a => a.CreatedAt.ToString("dd.MM.yyyy HH:mm"), true, "created_at"),
         ];
-
-        // Добавляем колонку действий ТОЛЬКО если есть хоть одно право на изменение
+        
         if (_canUpdate || _canDelete)
         {
             _columns.Add(new TableColumn<AdminListItemVm>

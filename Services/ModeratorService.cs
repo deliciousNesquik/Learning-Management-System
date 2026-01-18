@@ -23,20 +23,16 @@ public class ModeratorService(
             .AsNoTracking()
             .AsQueryable();
 
-        // --- ПОИСК (Login, UUID модератора, Название организации) ---
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var search = query.Search.ToLower();
             q = q.Where(m =>
-                m.Login.ToLower().Contains(search) ||
-                m.Uuid.ToString().Contains(search));
+                m.Uuid.ToString().Contains(query.Search) ||
+                (m.Surname + " " + m.Name + " " + (m.Patronymic ?? "")).Contains(query.Search));
         }
 
         // --- СОРТИРОВКА ---
         q = (query.SortBy?.ToLower(), query.SortDesc) switch
         {
-            ("login", false) => q.OrderBy(m => m.Login),
-            ("login", true) => q.OrderByDescending(m => m.Login),
             
             ("is_active", false) => q.OrderBy(m => m.IsActive),
             ("is_active", true) => q.OrderByDescending(m => m.IsActive),

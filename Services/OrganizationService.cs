@@ -20,13 +20,28 @@ public class OrganizationService(IDbContextFactory<DatabaseContext> dbFactory, I
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var search = query.Search.Trim();
-
             baseQuery = baseQuery.Where(o =>
-                EF.Functions.Like(o.Name, $"%{search}%") ||
-                o.Taxpayer.ToString().Contains(search));
-            // предположение: Taxpayer не строка, иначе Like
+                o.Uuid.ToString().Contains(query.Search) ||
+                o.Name.Contains(query.Search) ||
+                o.Taxpayer.ToString().Contains(query.Search) ||
+                (o.Mail ?? "").Contains(query.Search) ||
+                (o.Contacts ?? "").Contains(query.Search)
+                );
         }
+        
+        // --- СОРТИРОВКА ---
+        baseQuery = (query.SortBy?.ToLower(), query.SortDesc) switch
+        {
+            ("legal_form", false) => baseQuery.OrderBy(m => m.LegalFormUuid),
+            ("legal_form", true) => baseQuery.OrderByDescending(m => m.LegalFormUuid),
+            
+            //TODO: Добавить сортировку по количеству филиалов организации.
+            
+            ("created_at", false) => baseQuery.OrderBy(m => m.CreatedAt),
+            ("created_at", true) => baseQuery.OrderByDescending(m => m.CreatedAt),
+
+            _ => baseQuery.OrderByDescending(m => m.CreatedAt)
+        };
 
         var branchCounts = await db.Branches
             .GroupBy(b => b.OrganizationUuid)

@@ -43,16 +43,15 @@ public class AdminService(
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             q = q.Where(a =>
+                a.Uuid.ToString().Contains(query.Search) ||
                 a.Login.Contains(query.Search) ||
-                a.Uuid.ToString().Contains(query.Search));
+                (a.Surname + " " + a.Name + " " + (a.Patronymic ?? "")).Contains(query.Search)
+                );
         }
 
         // --- СОРТИРОВКА ---
         q = (query.SortBy, query.SortDesc) switch
         {
-            ("uuid", false) => q.OrderBy(a => a.Uuid),
-            ("uuid", true) => q.OrderByDescending(a => a.Uuid),
-            
             ("login", false) => q.OrderBy(a => a.Login),
             ("login", true) => q.OrderByDescending(a => a.Login),
             

@@ -5,15 +5,12 @@
 @using LMS.Models
 @using LMS.Services
 @using LMS.ViewModels.BranchViewModel
-@using LMS.ViewModels.DirectorViewModel
-@using LMS.ViewModels.OrganizationViewModel
 @using LMS.ViewModels.SubscriptionViewModel
 @using Microsoft.AspNetCore.Authorization
 @inject UserSessionAccessor UserSessionAccessor
 @inject ISubscriptionService SubscriptionService
-@inject NavigationManager NavigationManager
-@inject UserPermissions UserPermissions
 @inject IBranchService BranchService
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 @attribute [Authorize(Roles = "Admin")]
@@ -44,7 +41,7 @@
                     <GenericTable TItem="SubscriptionListItemVm"
                                   Data="page"
                                   Columns="columns"
-                                  Query="query"
+                                  Query="_query"
                                   OnQueryChanged="LoadData"/>
                 </div>
             </div>
@@ -245,7 +242,7 @@
     private bool isProcessing;
     private bool canRead, canInsert, canUpdate, canDelete;
     
-    private TableQuery query = new() { PageSize = 10 };
+    private TableQuery _query = new() { PageSize = 10 };
     private PagedResult<SubscriptionListItemVm> page = new();
     private List<TableColumn<SubscriptionListItemVm>> columns = new();
     
@@ -278,6 +275,14 @@
         {
             await LoadInitialData();
         }
+        
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("search", out var searchValue))
+        {
+            _query.Search = searchValue;
+            await LoadData(_query);
+        }
+        
         _isLoaded = true;
     }
 
@@ -286,23 +291,38 @@
         _allCourses = await SubscriptionService.GetAllCoursesForLookupAsync();
         _allBranches = await BranchService.GetAllBranchesAsync();
         DefineTableColumns();
-        await LoadData(query);
+        await LoadData(_query);
     }
     
     private void DefineTableColumns()
     {
         columns =
         [
-            new() { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
-            new() { Title = "Название", Value = a => a.Name, Sortable = true, SortKey = "uuid" },
-            new() { Title = "Начало", Value = a => a.StartDate, Sortable = true, SortKey = "uuid" },
-            new() { Title = "Конец", Value = a => a.EndDate, Sortable = true, SortKey = "uuid" },
-            new() { Title = "Лимит обучаемых", Value = a => a.EmployeesLimit, Sortable = true, SortKey = "uuid" },
-            new() { Title = "Статус", Value = a => a.IsActive, Sortable = true, SortKey = "uuid" },
-            new() { Title = "Цена", Value = a => (a.Price + " " + a.Currency), Sortable = true, SortKey = "uuid" },
-            new() { Title = "Филиал", Value = a => a.BranchName, Sortable = true, SortKey = "uuid" },
-            new() { Title = "Кол-во курсов", Value = a => a.CoursesCount, Sortable = true, SortKey = "uuid" },
-            new() { Title = "Создано", Value = a => a.CreatedAt, Sortable = true, SortKey = "uuid" }
+            new TableColumn<SubscriptionListItemVm> { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = false, SortKey = "uuid" },
+            new TableColumn<SubscriptionListItemVm> { Title = "Название", Value = a => a.Name, Sortable = false, SortKey = "name" },
+            new TableColumn<SubscriptionListItemVm> { Title = "Начало", Value = a => a.StartDate, Sortable = true, SortKey = "start_date" },
+            new TableColumn<SubscriptionListItemVm> { Title = "Конец", Value = a => a.EndDate, Sortable = true, SortKey = "end_date" },
+            new TableColumn<SubscriptionListItemVm> { Title = "Лимит обучаемых", Value = a => a.EmployeesLimit, Sortable = true, SortKey = "limit" },
+            new TableColumn<SubscriptionListItemVm> { Title = "Статус", Value = a => a.IsActive, Sortable = false, SortKey = "status" },
+            new TableColumn<SubscriptionListItemVm> { Title = "Цена", Value = a => (a.Price + " " + a.Currency), Sortable = true, SortKey = "price" },
+            new TableColumn<SubscriptionListItemVm> 
+            { 
+                Title = "Организация", 
+                Value = a => a.BranchName,
+                Sortable = false, 
+                SortKey = "branch_name",
+                Template = (item) => (builder) => 
+                {
+                    var url = $"/organizations?search={item.BranchUuid}";
+                    builder.OpenElement(0, "a");
+                    builder.AddAttribute(1, "href", url);
+                    builder.AddAttribute(2, "class", "text-decoration-none fw-bold");
+                    builder.AddContent(3, item.BranchName);
+                    builder.CloseElement();
+                }
+            },
+            new TableColumn<SubscriptionListItemVm> { Title = "Кол-во курсов", Value = a => a.CoursesCount, Sortable = true, SortKey = "count_courses" },
+            new TableColumn<SubscriptionListItemVm> { Title = "Создано", Value = a => a.CreatedAt, Sortable = true, SortKey = "created_at" }
         ];
         
         if (canUpdate || canDelete)
@@ -321,8 +341,8 @@
 
     private async Task LoadData(TableQuery q)
     {
-        query = q;
-        page = await SubscriptionService.GetPagedAsync(query);
+        _query = q;
+        page = await SubscriptionService.GetPagedAsync(_query);
     }
     
     private void ToggleCourse(List<Guid> list, Guid courseUuid, object? checkedValue)
@@ -382,7 +402,7 @@
         if (result.IsSuccess)
         {
             _showEditModal = false;
-            await LoadData(query);
+            await LoadData(_query);
         }
         isProcessing = false;
     }

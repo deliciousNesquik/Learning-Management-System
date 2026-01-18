@@ -82,7 +82,7 @@
                     <GenericTable TItem="ModeratorListItemVm"
                                   Data="pagedModerators"
                                   Columns="columns"
-                                  Query="query"
+                                  Query="_query"
                                   OnQueryChanged="LoadData"/>
                 </div>
             </div>
@@ -318,7 +318,7 @@
     private PagedResult<ModeratorListItemVm> pagedModerators = new();
     private List<TableColumn<ModeratorListItemVm>> columns = new();
     private ModeratorStatsVm? stats;
-    private TableQuery query = new() { PageSize = 10 };
+    private TableQuery _query = new() { PageSize = 10 };
     private List<TablePermissionVm> permissions = new();
     private List<BranchNamesLookupVm> allBranches = new();
 
@@ -349,6 +349,14 @@
         {
             await LoadInitialData();
         }
+        
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("search", out var searchValue))
+        {
+            _query.Search = searchValue;
+            await LoadData(_query);
+        }
+        
         isLoaded = true;
     }
 
@@ -357,24 +365,64 @@
         allBranches = await BranchService.GetAllBranchesAsync();
         DefineTableColumns();
         await LoadStats();
-        await LoadData(query);
+        await LoadData(_query);
     }
     
     private void DefineTableColumns()
     {
-        columns = new List<TableColumn<ModeratorListItemVm>>
-        {
-            new() { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
-            new() { Title = "Логин", Value = a => a.Login, Sortable = true, SortKey = "login" },
-            new() { Title = "Организация", Value = a => a.OrganizationName, Sortable = true, SortKey = "organization_uuid" },
-            new() { Title = "Статус", Value = a => a.IsActive ? "Активен" : "Заблокирован", Sortable = true, SortKey = "is_active" },
-            new() { Title = "Дата создания", Value = a => a.CreatedAt.ToString("dd.MM.yyyy HH:mm"), Sortable = true, SortKey = "created_at" },
-            new() { Title = "Филиалы", Value = a => a.BranchesNames, Sortable = true, SortKey = "branches_names" },
-            new() { Title = "Организация", Value = a => a.OrganizationName, Sortable = true, SortKey = "organization_name" },
-            new() { Title = "Фамилия", Value = a => a.Surname, Sortable = true, SortKey = "surname" },
-            new() { Title = "Имя", Value = a => a.Name, Sortable = true, SortKey = "name" },
-            new() { Title = "Отчество", Value = a => a.Patronymic, Sortable = true, SortKey = "patronymic" },
-        };
+        columns =
+        [
+            new TableColumn<ModeratorListItemVm> { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = false, SortKey = "uuid" },
+            new TableColumn<ModeratorListItemVm> { Title = "Логин", Value = a => a.Login, Sortable = false, SortKey = "login" },
+            new TableColumn<ModeratorListItemVm> 
+            { 
+                Title = "Организация", 
+                Value = a => a.OrganizationName,
+                Sortable = false, 
+                SortKey = "organization_name",
+                Template = (item) => (builder) => 
+                {
+                    var url = $"/organizations?search={item.OrganizationUuid}";
+                    builder.OpenElement(0, "a");
+                    builder.AddAttribute(1, "href", url);
+                    builder.AddAttribute(2, "class", "text-decoration-none fw-bold");
+                    builder.AddContent(3, item.OrganizationName);
+                    builder.CloseElement();
+                }
+            },
+            new TableColumn<ModeratorListItemVm>
+            {
+                Title = "Филиалы",
+                Value = a => a.BranchesNames,
+                Sortable = false,
+                SortKey = "organization_name",
+                Template = (item) => (builder) =>
+                {
+                    if (item.BranchesUuids == null || item.BranchesUuids.Count == 0) return;
+
+                    var names = item.BranchesNames?.Split(", ") ?? [];
+
+                    for (var i = 0; i < item.BranchesUuids.Count; i++)
+                    {
+                        var uuid = item.BranchesUuids[i];
+                        var name = i < names.Length ? names[i] : uuid.ToString();
+
+                        builder.OpenElement(0, "a");
+                        builder.AddAttribute(1, "href", $"/branches?search={uuid}");
+                        builder.AddAttribute(2, "class", "badge bg-primary text-decoration-none me-1");
+                        builder.AddContent(3, name);
+                        builder.CloseElement();
+                    }
+                }
+            },
+
+            new TableColumn<ModeratorListItemVm> { Title = "Статус", Value = a => a.IsActive ? "Активен" : "Заблокирован", Sortable = true, SortKey = "is_active" },
+            new TableColumn<ModeratorListItemVm> { Title = "Дата создания", Value = a => a.CreatedAt.ToString("dd.MM.yyyy HH:mm"), Sortable = true, SortKey = "created_at" },
+            new TableColumn<ModeratorListItemVm> { Title = "Фамилия", Value = a => a.Surname, Sortable = false, SortKey = "surname" },
+            new TableColumn<ModeratorListItemVm> { Title = "Имя", Value = a => a.Name, Sortable = false, SortKey = "name" },
+            new TableColumn<ModeratorListItemVm> { Title = "Отчество", Value = a => a.Patronymic, Sortable = false, SortKey = "patronymic" }
+
+        ];
         
         if (canUpdate || canDelete)
         {
@@ -402,11 +450,11 @@
 
     private async Task LoadData(TableQuery q)
     {
-        query = q;
-        pagedModerators = await ModeratorService.GetPagedAsync(query);
+        _query = q;
+        pagedModerators = await ModeratorService.GetPagedAsync(_query);
     }
 
-    private async Task HandleSearch() => await LoadData(query);
+    private async Task HandleSearch() => await LoadData(_query);
 
     // --- ДЕЙСТВИЯ ---
     private void AddBranchToModel(List<Guid> list, ChangeEventArgs e)
@@ -460,7 +508,7 @@
         if (result.IsSuccess)
         {
             showEditModal = false;
-            await LoadData(query);
+            await LoadData(_query);
         }
         isProcessing = false;
     }

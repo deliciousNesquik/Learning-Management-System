@@ -45,7 +45,7 @@
                     <GenericTable TItem="DirectorListItemVm"
                                   Data="page"
                                   Columns="columns"
-                                  Query="query"
+                                  Query="_query"
                                   OnQueryChanged="LoadData"/>
                 </div>
             </div>
@@ -226,7 +226,7 @@
     private bool isProcessing;
     private bool canRead, canInsert, canUpdate, canDelete;
     
-    private TableQuery query = new() { PageSize = 10 };
+    private TableQuery _query = new() { PageSize = 10 };
     private PagedResult<DirectorListItemVm> page = new();
     private List<TableColumn<DirectorListItemVm>> columns = new();
     private List<BranchNamesLookupVm> allBranches = new();
@@ -257,6 +257,14 @@
         {
             await LoadInitialData();
         }
+        
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("search", out var searchValue))
+        {
+            _query.Search = searchValue;
+            await LoadData(_query);
+        }
+        
         _isLoaded = true;
     }
 
@@ -264,18 +272,69 @@
     {
         allBranches = await BranchService.GetAllBranchesAsync();
         DefineTableColumns();
-        await LoadData(query);
+        await LoadData(_query);
     }
     
     private void DefineTableColumns()
     {
         columns =
         [
-            new() { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = true, SortKey = "uuid" },
-            new() { Title = "Должность", Value = a => a.Post, Sortable = true, SortKey = "post" },
-            new() { Title = "ФИО", Value = a => (a.Surname + " " + a.Name + (a.Patronymic == null ? "" : " " + a.Patronymic)), Sortable = true, SortKey = "full_name" },
-            new() { Title = "Организация", Value = a => a.OrganizationName, Sortable = true, SortKey = "organization_name" },
-            new() { Title = "Филиалы", Value = a => a.BranchesNames, Sortable = true, SortKey = "organization_name" }
+            new TableColumn<DirectorListItemVm> { Title = "UUID", Value = a => a.Uuid.ToString(), Sortable = false, SortKey = "uuid" },
+            new TableColumn<DirectorListItemVm> { Title = "Должность", Value = a => a.Post, Sortable = false, SortKey = "post" },
+            new TableColumn<DirectorListItemVm> { Title = "Фамилия", Value = a => a.Surname, Sortable = false, SortKey = "surname" },
+            new TableColumn<DirectorListItemVm> { Title = "Имя", Value = a => a.Name, Sortable = false, SortKey = "name" },
+            new TableColumn<DirectorListItemVm> { Title = "Отчество", Value = a => a.Patronymic ?? "", Sortable = false, SortKey = "patronymic" },
+            new TableColumn<DirectorListItemVm> 
+            { 
+                Title = "Организации",
+                Value = a => a.BranchesNames, 
+                Sortable = false,
+                SortKey = "organization_name",
+                Template = (item) => (builder) =>
+                {
+                    if (item.OrganizationsUuids == null || item.OrganizationsUuids.Count == 0) return;
+                    
+                    var names = item.OrganizationsNames?.Split(", ") ?? [];
+
+                    for (var i = 0; i < item.OrganizationsUuids.Count; i++)
+                    {
+                        var uuid = item.OrganizationsUuids[i];
+                        var name = i < names.Length ? names[i] : uuid.ToString();
+                        
+                        builder.OpenElement(0, "a");
+                        builder.AddAttribute(1, "href", $"/organizations?search={uuid}");
+                        builder.AddAttribute(2, "class", "badge bg-primary text-decoration-none me-1");
+                        builder.AddContent(3, name);
+                        builder.CloseElement();
+                    }
+                }
+            },
+            new TableColumn<DirectorListItemVm>
+            {
+                Title = "Филиалы",
+                Value = a => a.BranchesNames, 
+                Sortable = false,
+                SortKey = "branches_names",
+                Template = (item) => (builder) =>
+                {
+                    if (item.BranchesUuids == null || item.BranchesUuids.Count == 0) return;
+                    
+                    var names = item.BranchesNames?.Split(", ") ?? [];
+
+                    for (var i = 0; i < item.BranchesUuids.Count; i++)
+                    {
+                        var uuid = item.BranchesUuids[i];
+                        var name = i < names.Length ? names[i] : uuid.ToString();
+                        
+                        builder.OpenElement(0, "a");
+                        builder.AddAttribute(1, "href", $"/branches?search={uuid}");
+                        builder.AddAttribute(2, "class", "badge bg-primary text-decoration-none me-1");
+                        builder.AddContent(3, name);
+                        builder.CloseElement();
+                    }
+                }
+            },
+            new TableColumn<DirectorListItemVm> { Title = "Когда создан", Value = a => a.CreatedAt, Sortable = true, SortKey = "created_at" },
         ];
         
         if (canUpdate || canDelete)
@@ -294,8 +353,8 @@
 
     private async Task LoadData(TableQuery q)
     {
-        query = q;
-        page = await DirectorService.GetPagedAsync(query);
+        _query = q;
+        page = await DirectorService.GetPagedAsync(_query);
     }
 
     // --- ДЕЙСТВИЯ ---
@@ -351,7 +410,7 @@
         if (result.IsSuccess)
         {
             _showEditModal = false;
-            await LoadData(query);
+            await LoadData(_query);
         }
         isProcessing = false;
     }

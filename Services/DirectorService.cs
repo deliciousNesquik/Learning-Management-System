@@ -18,29 +18,20 @@ public class DirectorService(IDbContextFactory<DatabaseContext> dbFactory) : IDi
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var search = query.Search.Trim();
 
             q = q.Where(d =>
-                EF.Functions.Like(d.Surname, $"%{search}%") ||
-                EF.Functions.Like(d.Name, $"%{search}%") ||
-                EF.Functions.Like(d.Patronymic!, $"%{search}%") ||
-                EF.Functions.Like(d.Post, $"%{search}%")
+                d.Uuid.ToString().Contains(query.Search) ||
+                (d.Surname + " " + d.Name + " " + (d.Patronymic ?? "")).Contains(query.Search) ||
+                d.Post.Contains(query.Search)
             );
-
-            // предположение:
-            // поиск по UUID — отдельной веткой, если search можно распарсить в Guid
+            
         }
 
         q = (query.SortBy, query.SortDesc) switch
         {
-            ("uuid", false) => q.OrderBy(d => d.Uuid),
-            ("uuid", true) => q.OrderByDescending(d => d.Uuid),
-            ("post", false) => q.OrderBy(d => d.Post),
-            ("post", true) => q.OrderByDescending(d => d.Post),
             ("created_at", false) => q.OrderBy(d => d.CreatedAt),
             ("created_at", true) => q.OrderByDescending(d => d.CreatedAt),
-            ("full_name", false) => q.OrderBy(d => d.Surname).ThenBy(d => d.Name),
-            ("full_name", true) => q.OrderByDescending(d => d.Surname).ThenByDescending(d => d.Name),
+            
             _ => q.OrderByDescending(d => d.CreatedAt)
         };
 
@@ -56,6 +47,7 @@ public class DirectorService(IDbContextFactory<DatabaseContext> dbFactory) : IDi
                 d.Surname,
                 d.Name,
                 d.Patronymic,
+                d.CreatedAt,
                 // Загружаем данные один раз во временный объект
                 Links = d.BranchesDirectors.Select(bd => new {
                     OrgName = bd.Branch.Organization.Name,
@@ -74,8 +66,9 @@ public class DirectorService(IDbContextFactory<DatabaseContext> dbFactory) : IDi
                 Surname = x.Surname,
                 Name = x.Name,
                 Patronymic = x.Patronymic ?? "",
-                OrganizationName = string.Join(", ", x.Links.Select(l => l.OrgName).Distinct()),
-                OrganizationUuid = x.Links.Select(l => l.OrgUuid).FirstOrDefault(),
+                CreatedAt = x.CreatedAt,
+                OrganizationsNames = string.Join(", ", x.Links.Select(l => l.OrgName).Distinct()),
+                OrganizationsUuids = x.Links.Select(l => l.OrgUuid).ToList(),
                 BranchesNames = string.Join(", ", x.Links.Select(l => l.BranchName)),
                 BranchesUuids = x.Links.Select(l => l.BranchUuid).ToList()
             }).ToList(),

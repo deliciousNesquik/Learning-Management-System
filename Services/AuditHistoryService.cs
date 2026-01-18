@@ -19,17 +19,15 @@ public class AuditHistoryService(
         // --- ПОИСК ---
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            q = q.Where(a => a.TableName.Contains(query.Search) || 
-                             a.Uuid.ToString().Contains(query.Search) || 
-                             a.RecordUuid.ToString().Contains(query.Search));
+            q = q.Where(a => 
+                a.Uuid.ToString().Contains(query.Search) ||
+                a.TableName.Contains(query.Search) ||
+                a.RecordUuid.ToString().Contains(query.Search));
         }
 
         // --- СОРТИРОВКА ---
         q = (query.SortBy, query.SortDesc) switch
         {
-            ("uuid", false) => q.OrderBy(a => a.Uuid),
-            ("uuid", true) => q.OrderByDescending(a => a.Uuid),
-            
             ("table_name", false) => q.OrderBy(a => a.TableName),
             ("table_name", true) => q.OrderByDescending(a => a.TableName),
             

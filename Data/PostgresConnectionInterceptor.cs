@@ -1,20 +1,15 @@
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Data.Common;
 using LMS.Services;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
-public class PostgresConnectionInterceptor : DbConnectionInterceptor
+namespace LMS.Data;
+
+public class PostgresConnectionInterceptor(UserSessionAccessor sessionAccessor) : DbConnectionInterceptor
 {
-    private readonly UserSessionAccessor _sessionAccessor;
-
-    public PostgresConnectionInterceptor(UserSessionAccessor sessionAccessor)
-    {
-        _sessionAccessor = sessionAccessor;
-    }
-
     // Используем синхронный метод для стабильности
     public override void ConnectionOpened(DbConnection connection, ConnectionEndEventData eventData)
     {
-        var userId = _sessionAccessor.UserUuid;
+        var userId = sessionAccessor.UserUuid;
         if (userId.HasValue)
         {
             using var command = connection.CreateCommand();
@@ -27,10 +22,10 @@ public class PostgresConnectionInterceptor : DbConnectionInterceptor
     // И асинхронный тоже, для полноты картины
     public override async Task ConnectionOpenedAsync(DbConnection connection, ConnectionEndEventData eventData, CancellationToken cancellationToken = default)
     {
-        var userId = _sessionAccessor.UserUuid;
+        var userId = sessionAccessor.UserUuid;
         if (userId.HasValue)
         {
-            using var command = connection.CreateCommand();
+            await using var command = connection.CreateCommand();
             command.CommandText = $"SET app.current_user_id = '{userId}';";
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
