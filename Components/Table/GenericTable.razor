@@ -165,26 +165,17 @@
     
     private bool _showColumnModal;
     private HashSet<string> _visibleColumnKeys = [];
-    private bool _isFirstRender = true;
+    //private bool _isFirstRender = true;
     
     // Вычисляем общее количество страниц
     private int TotalPages => (int)Math.Ceiling((double)Data.TotalCount / Query.PageSize);
-    
-    /*protected override void OnParametersSet()
-    {
-        // Инициализируем видимые колонки всеми доступными при первом запуске
-        if (_visibleColumnKeys.Count == 0)
-        {
-            _visibleColumnKeys = Columns.Select(c => c.SortKey ?? c.Title).ToHashSet();
-        }
-    }*/
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender && !string.IsNullOrEmpty(StorageKey))
         {
-            // 2. Загружаем сохраненные колонки из localStorage
-            var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"table_cols_{StorageKey}");
+            // Загружаем сохраненные колонки из localStorage
+            var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"{StorageKey}_visibleColumns");
             if (!string.IsNullOrEmpty(json))
             {
                 var savedKeys = JsonSerializer.Deserialize<List<string>>(json);
@@ -210,11 +201,11 @@
             if (check) _visibleColumnKeys.Add(key);
             else if (_visibleColumnKeys.Count > 1) _visibleColumnKeys.Remove(key);
 
-            // 3. Сохраняем новое состояние при каждом изменении
+            // Сохраняем новое состояние при каждом изменении
             if (!string.IsNullOrEmpty(StorageKey))
             {
                 var json = JsonSerializer.Serialize(_visibleColumnKeys);
-                await JSRuntime.InvokeVoidAsync("localStorage.setItem", $"table_cols_{StorageKey}", json);
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", $"{StorageKey}_visibleColumns", json);
             }
         }
     }

@@ -1,0 +1,227 @@
+@page "/profile"
+@using LMS.Services
+@using LMS.Models
+@inject UserSessionAccessor Accessor
+@inject IJSRuntime JS
+
+@rendermode InteractiveServer
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-4">
+            
+            <div class="card shadow mb-4 border-0">
+                <div class="card-body text-center py-5">
+                    <div class="d-flex justify-content-center mb-4">
+                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center shadow-sm" 
+                             style="width: 120px; height: 120px; font-size: 3rem; color: white; font-weight: bold; text-transform: uppercase;">
+                            @(Accessor.UserName?.FirstOrDefault() ?? 'U')
+                        </div>
+                    </div>
+
+                    <h4 class="fw-bold mb-1">
+                        @Accessor.UserSurname @Accessor.UserName @Accessor.UserPatronymic
+                    </h4>
+
+                    <div class="mb-4">
+                        <span class="badge @GetRoleBadgeClass() px-3 py-2" style="font-size: 0.9rem;">
+                            <i class="bi bi-shield-lock me-1"></i> @GetLocalizedRole()
+                        </span>
+                    </div>
+
+                    <hr class="mx-5 my-4 text-muted" />
+
+                    <div class="row g-4 justify-content-center">
+                        <div class="col-md-5">
+                            <div class="d-flex flex-column align-items-start">
+                                <label class="small text-muted mb-1 text-uppercase fw-bold" style="letter-spacing: 0.5px;">Логин</label>
+                                <div class="d-flex align-items-center w-100 justify-content-between bg-light p-2 rounded">
+                                    <span class="fs-6 fw-medium text-dark">@Accessor.UserLogin</span>
+                                    <button class="btn btn-sm btn-outline-secondary ms-2 border-0" type="button"
+                                            @onclick="() => CopyToClipboard(Accessor.UserLogin)" title="Копировать">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-5">
+                            <div class="d-flex flex-column align-items-start">
+                                <label class="small text-muted mb-1 text-uppercase fw-bold" style="letter-spacing: 0.5px;">Идентификатор (UUID)</label>
+                                <div class="d-flex align-items-center w-100 justify-content-between bg-light p-2 rounded">
+                                    <span class="small text-dark text-truncate" style="font-family: monospace;">@Accessor.UserUuid</span>
+                                    <button class="btn btn-sm btn-outline-secondary ms-2 border-0" type="button" 
+                                            @onclick="() => CopyToClipboard(Accessor.UserUuid.ToString())" title="Копировать">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-info-circle me-2"></i>Системные данные</h6>
+                    <hr />
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Дата регистрации: <span>01.01.2024</span>
+                        </li>
+                        @if (Accessor.UserRole != "Admin")
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Организация: <span>ООО "Ромашка"</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-bell me-2"></i>Уведомления</h6>
+                    <hr />
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="navEmail">
+                        <label class="form-check-label" for="navEmail">E-mail</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="navBrowser" checked>
+                        <label class="form-check-label" for="navBrowser">Браузер</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="navTG">
+                        <label class="form-check-label" for="navTG">Telegram</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            
+            @if (Accessor.UserRole == "Admin")
+            {
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-dark text-white">Панель Администратора</div>
+                    <div class="card-body">
+                        <h5>Мои полномочия</h5>
+                        <button class="btn btn-outline-secondary btn-sm mb-4">Посмотреть доступ к таблицам БД</button>
+
+                        <h5>Лог последних действий</h5>
+                        @if (canViewAudit)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Действие</th>
+                                            <th>Таблица</th>
+                                            <th>Дата</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Update</td>
+                                            <td>Organizations</td>
+                                            <td>12:30</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">У вас нет прав на просмотр истории аудита.</div>
+                        }
+                    </div>
+                </div>
+            }
+            else if (Accessor.UserRole == "Moderator")
+            {
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-info text-white">Панель Модератора</div>
+                    <div class="card-body text-center py-5">
+                        <p class="text-muted">Раздел находится в разработке...</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-success text-white">Моё обучение</div>
+                    <div class="card-body">
+                        <h6>Текущий прогресс</h6>
+                        <div class="mb-3">
+                            <small>Курс: Основы C#</small>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 75%;">75%</div>
+                            </div>
+                        </div>
+
+                        <h6 class="mt-4">Зал славы (Achievements)</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-4">
+                            <span class="badge bg-warning text-dark p-2"><i class="bi bi-trophy"></i> Первопроходец</span>
+                            <button class="btn btn-outline-danger btn-sm"><i class="bi bi-file-pdf"></i> Сертификат.pdf</button>
+                        </div>
+
+                        <h6>Результаты последних тестов</h6>
+                        <ul class="list-group list-group-flush mb-4">
+                            <li class="list-group-item d-flex justify-content-between">Тест №1 <span>85/100</span></li>
+                            <li class="list-group-item d-flex justify-content-between">Тест №2 <span>92/100</span></li>
+                        </ul>
+
+                        <h6>Мои группы</h6>
+                        <div class="p-3 bg-light rounded">
+                            <p class="mb-1"><strong>Группа:</strong> Вечерний поток 2024</p>
+                            <p class="mb-0"><strong>Куратор:</strong> Иванов Иван (Модератор)</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool canViewAudit = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Проверяем право на просмотр истории аудита для админа
+        canViewAudit = await Accessor.HasPermission(DbSchemaConstants.AuditHistory, SqlOperation.Select);
+    }
+    
+    private string GetLocalizedRole()
+    {
+        return Accessor.UserRole switch
+        {
+            "Admin" => "Администратор",
+            "Moderator" => "Куратор",
+            "Employee" => "Обучающийся",
+            _ => "Пользователь"
+        };
+    }
+
+    private string GetRoleBadgeClass()
+    {
+        return Accessor.UserRole switch
+        {
+            "Admin" => "bg-danger",
+            "Moderator" => "bg-primary",
+            "Employee" => "bg-success",
+            _ => "bg-secondary"
+        };
+    }
+
+    private async Task CopyToClipboard(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+        
+        // Вызов стандартного браузерного API через JS Interop
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        
+        // Опционально: можно добавить уведомление "Скопировано!"
+    }
+}
