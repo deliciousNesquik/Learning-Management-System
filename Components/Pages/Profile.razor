@@ -1,197 +1,187 @@
 @page "/profile"
+@using LMS.Interfaces
 @using LMS.Services
 @using LMS.Models
 @inject UserSessionAccessor Accessor
+@inject IUserSecurityService UserSecurityService
 @inject IJSRuntime JS
 
 @rendermode InteractiveServer
 
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-lg-4">
-            
-            <div class="card shadow mb-4 border-0">
-                <div class="card-body text-center py-5">
-                    <div class="d-flex justify-content-center mb-4">
-                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center shadow-sm" 
-                             style="width: 120px; height: 120px; font-size: 3rem; color: white; font-weight: bold; text-transform: uppercase;">
-                            @(Accessor.UserName?.FirstOrDefault() ?? 'U')
+<div class="container-fluid px-3">
+    <div class="row justify-content-center">
+        <div class="col-xl-9 col-lg-10 col-md-12">
+            <div class="profile-container mx-auto">
+                
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="card-header bg-primary text-white py-2">
+                        <h6 class="mb-0 fw-semibold text-center">Мой профиль</h6>
+                    </div>
+                    
+                    <div class="card-body p-3">
+                        <div class="text-center mb-3">
+                            <div class="position-relative d-inline-block mb-2">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" 
+                                     style="width: 75px; height: 75px; font-size: 1.4rem; color: #0d6efd; font-weight: 600; text-transform: uppercase;">
+                                    <span>@($"{Accessor.UserName?.FirstOrDefault()}{Accessor.UserSurname?.FirstOrDefault()}".ToUpper())</span>
+                                </div>
+                            </div>
+
+                            <h6 class="fw-bold mb-1 text-dark">
+                                @Accessor.UserSurname @Accessor.UserName @Accessor.UserPatronymic
+                            </h6>
+                            <div class="mb-2">
+                                <span class="badge @GetRoleBadgeClass() px-2 py-1 fw-medium fs-7">
+                                    <i class="bi bi-person me-1 fs-7"></i> @GetLocalizedRole()
+                                </span>
+                            </div>
                         </div>
-                    </div>
 
-                    <h4 class="fw-bold mb-1">
-                        @Accessor.UserSurname @Accessor.UserName @Accessor.UserPatronymic
-                    </h4>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <div class="mb-2">
+                                    <label class="form-label text-muted mb-1 fs-7 fw-medium">Логин</label>
+                                    <div class="input-group">
+                                        <span class="form-control bg-light border-1 fw-medium px-2 py-1">@Accessor.UserLogin</span>
+                                        <button class="btn btn-outline-primary btn-sm px-2 py-1" type="button"
+                                                @onclick="() => CopyToClipboard(Accessor.UserLogin)" 
+                                                title="Копировать">
+                                            <i class="bi bi-clipboard fs-6"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="mb-4">
-                        <span class="badge @GetRoleBadgeClass() px-3 py-2" style="font-size: 0.9rem;">
-                            <i class="bi bi-shield-lock me-1"></i> @GetLocalizedRole()
-                        </span>
-                    </div>
-
-                    <hr class="mx-5 my-4 text-muted" />
-
-                    <div class="row g-4 justify-content-center">
-                        <div class="col-md-5">
-                            <div class="d-flex flex-column align-items-start">
-                                <label class="small text-muted mb-1 text-uppercase fw-bold" style="letter-spacing: 0.5px;">Логин</label>
-                                <div class="d-flex align-items-center w-100 justify-content-between bg-light p-2 rounded">
-                                    <span class="fs-6 fw-medium text-dark">@Accessor.UserLogin</span>
-                                    <button class="btn btn-sm btn-outline-secondary ms-2 border-0" type="button"
-                                            @onclick="() => CopyToClipboard(Accessor.UserLogin)" title="Копировать">
-                                        <i class="bi bi-clipboard"></i>
-                                    </button>
+                            <div class="col-12">
+                                <div class="mb-2">
+                                    <label class="form-label text-muted mb-1 fs-7 fw-medium">Идентификатор (UUID)</label>
+                                    <div class="input-group">
+                                        <span class="form-control bg-light border-1 text-truncate fw-medium px-2 py-1" 
+                                              style="font-family: monospace; font-size: 0.78rem;">@Accessor.UserUuid</span>
+                                        <button class="btn btn-outline-primary btn-sm px-2 py-1" type="button" 
+                                                @onclick="() => CopyToClipboard(Accessor.UserUuid.ToString())" 
+                                                title="Копировать">
+                                            <i class="bi bi-clipboard fs-6"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-md-5">
-                            <div class="d-flex flex-column align-items-start">
-                                <label class="small text-muted mb-1 text-uppercase fw-bold" style="letter-spacing: 0.5px;">Идентификатор (UUID)</label>
-                                <div class="d-flex align-items-center w-100 justify-content-between bg-light p-2 rounded">
-                                    <span class="small text-dark text-truncate" style="font-family: monospace;">@Accessor.UserUuid</span>
-                                    <button class="btn btn-sm btn-outline-secondary ms-2 border-0" type="button" 
-                                            @onclick="() => CopyToClipboard(Accessor.UserUuid.ToString())" title="Копировать">
-                                        <i class="bi bi-clipboard"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="card shadow mb-4">
-                <div class="card-body">
-                    <h6 class="card-title"><i class="bi bi-info-circle me-2"></i>Системные данные</h6>
-                    <hr />
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Дата регистрации: <span>01.01.2024</span>
-                        </li>
-                        @if (Accessor.UserRole != "Admin")
-                        {
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Организация: <span>ООО "Ромашка"</span>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </div>
-
-            <div class="card shadow mb-4">
-                <div class="card-body">
-                    <h6 class="card-title"><i class="bi bi-bell me-2"></i>Уведомления</h6>
-                    <hr />
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="navEmail">
-                        <label class="form-check-label" for="navEmail">E-mail</label>
+                
+                <div class="card shadow-sm border-0 rounded-3" style="margin-top: 30px">
+                    <div class="card-header bg-primary text-white py-2">
+                        <h6 class="mb-0 fw-semibold text-center">Безопасность</h6>
                     </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="navBrowser" checked>
-                        <label class="form-check-label" for="navBrowser">Браузер</label>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="navTG">
-                        <label class="form-check-label" for="navTG">Telegram</label>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-8">
-            
-            @if (Accessor.UserRole == "Admin")
-            {
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-dark text-white">Панель Администратора</div>
-                    <div class="card-body">
-                        <h5>Мои полномочия</h5>
-                        <button class="btn btn-outline-secondary btn-sm mb-4">Посмотреть доступ к таблицам БД</button>
-
-                        <h5>Лог последних действий</h5>
-                        @if (canViewAudit)
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Действие</th>
-                                            <th>Таблица</th>
-                                            <th>Дата</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Update</td>
-                                            <td>Organizations</td>
-                                            <td>12:30</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="alert alert-warning">У вас нет прав на просмотр истории аудита.</div>
-                        }
-                    </div>
-                </div>
-            }
-            else if (Accessor.UserRole == "Moderator")
-            {
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-info text-white">Панель Модератора</div>
-                    <div class="card-body text-center py-5">
-                        <p class="text-muted">Раздел находится в разработке...</p>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-success text-white">Моё обучение</div>
-                    <div class="card-body">
-                        <h6>Текущий прогресс</h6>
+                    
+                    <div class="card-body p-3">
                         <div class="mb-3">
-                            <small>Курс: Основы C#</small>
-                            <div class="progress" style="height: 20px;">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: 75%;">75%</div>
+                            <label class="form-label text-muted mb-1 fs-7 fw-medium">Последняя смена пароля</label>
+                            @if (lastPasswordChangeDate.HasValue)
+                            {
+                                <div class="d-flex align-items-center justify-content-between bg-light p-2 rounded">
+                                    <span class="fw-medium">@lastPasswordChangeDate.Value.ToString("dd.MM.yyyy HH:mm")</span>
+                                    <span class="badge bg-success-subtle text-success fs-7"> Изменен</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="d-flex align-items-center justify-content-between bg-light p-2 rounded">
+                                    <span class="badge bg-danger text-white fs-7">Требуется смена пароля</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="d-grid">
+                            <button class="btn btn-primary btn-sm py-2" type="button"
+                                    @*@onclick="ChangePasswordAsync"*@>
+                                <i class="bi bi-key me-1"></i> Сменить пароль
+                            </button>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(passwordChangeMessage))
+                        {
+                            <div class="mt-2 alert alert-info p-2 mb-0 rounded">
+                                <i class="bi bi-info-circle me-1"></i> @passwordChangeMessage
                             </div>
-                        </div>
-
-                        <h6 class="mt-4">Зал славы (Achievements)</h6>
-                        <div class="d-flex flex-wrap gap-2 mb-4">
-                            <span class="badge bg-warning text-dark p-2"><i class="bi bi-trophy"></i> Первопроходец</span>
-                            <button class="btn btn-outline-danger btn-sm"><i class="bi bi-file-pdf"></i> Сертификат.pdf</button>
-                        </div>
-
-                        <h6>Результаты последних тестов</h6>
-                        <ul class="list-group list-group-flush mb-4">
-                            <li class="list-group-item d-flex justify-content-between">Тест №1 <span>85/100</span></li>
-                            <li class="list-group-item d-flex justify-content-between">Тест №2 <span>92/100</span></li>
-                        </ul>
-
-                        <h6>Мои группы</h6>
-                        <div class="p-3 bg-light rounded">
-                            <p class="mb-1"><strong>Группа:</strong> Вечерний поток 2024</p>
-                            <p class="mb-0"><strong>Куратор:</strong> Иванов Иван (Модератор)</p>
-                        </div>
+                        }
                     </div>
                 </div>
-            }
+                
+            </div>
         </div>
     </div>
 </div>
 
-@code {
-    private bool canViewAudit = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Проверяем право на просмотр истории аудита для админа
-        canViewAudit = await Accessor.HasPermission(DbSchemaConstants.AuditHistory, SqlOperation.Select);
+<style>
+    .profile-container {
+        width: 90%;
+        max-width: 1140px;
+        margin: 30px auto;
     }
+    
+    .card-header {
+        background-color: #0d6efd !important;
+        min-height: 36px;
+    }
+    
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+    
+    .border-1 {
+        border-width: 1px !important;
+        border-color: #dee2e6 !important;
+    }
+    
+    .btn-outline-primary {
+        border-color: #0d6efd !important;
+        color: #0d6efd !important;
+        padding: 0.25rem 0.4rem !important;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: #0d6efd !important;
+        color: white !important;
+    }
+    
+    .badge-admin {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .badge-moderator {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .badge-employee {
+        background-color: #198754;
+        color: white;
+    }
+    
+    .badge-default {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .fs-7 {
+        font-size: 0.85rem !important;
+    }
+    
+    .card {
+        border: 1px solid #e9ecef !important;
+    }
+    
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+</style>
+
+@code {
+    private DateTime? lastPasswordChangeDate;
+    private string passwordChangeMessage = string.Empty;
     
     private string GetLocalizedRole()
     {
@@ -203,15 +193,50 @@
             _ => "Пользователь"
         };
     }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPasswordChangeDateAsync();
+    }
+
+    private async Task LoadPasswordChangeDateAsync()
+    {
+        try
+        {
+            // isLoading = true;
+            StateHasChanged();
+            
+            lastPasswordChangeDate = await UserSecurityService.GetLastPasswordChangeDateAsync((Guid)Accessor.UserUuid);
+            Console.WriteLine(lastPasswordChangeDate);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки данных о пароле: {ex.Message}");
+            lastPasswordChangeDate = null;
+            passwordChangeMessage = "Не удалось загрузить данные о последней смене пароля";
+            //alertClass = "alert-danger";
+            //iconClass = "bi bi-exclamation-triangle";
+        }
+        finally
+        {
+            //isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ChangePasswordAsync()
+    {
+        StateHasChanged();
+    }
 
     private string GetRoleBadgeClass()
     {
         return Accessor.UserRole switch
         {
-            "Admin" => "bg-danger",
-            "Moderator" => "bg-primary",
-            "Employee" => "bg-success",
-            _ => "bg-secondary"
+            "Admin" => "badge-admin",
+            "Moderator" => "badge-moderator",
+            "Employee" => "badge-employee",
+            _ => "badge-default"
         };
     }
 
@@ -219,9 +244,11 @@
     {
         if (string.IsNullOrEmpty(text)) return;
         
-        // Вызов стандартного браузерного API через JS Interop
-        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
-        
-        // Опционально: можно добавить уведомление "Скопировано!"
+        try {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        }
+        catch (Exception ex) {
+            Console.WriteLine($"Ошибка копирования: {ex.Message}");
+        }
     }
 }

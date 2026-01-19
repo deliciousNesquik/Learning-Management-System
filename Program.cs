@@ -25,6 +25,8 @@ builder.Services.AddScoped<IBranchService, BranchService>();
 builder.Services.AddScoped<IAuditHistoryService, AuditHistoryService>();
 builder.Services.AddScoped<IDirectorService, DirectorService>();
 
+builder.Services.AddScoped<IUserSecurityService, UserSecurityService>();
+
 // Добавление сервисов для авторизации в приложении.
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<UserSessionAccessor>();

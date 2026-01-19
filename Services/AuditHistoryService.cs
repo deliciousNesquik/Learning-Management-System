@@ -57,8 +57,8 @@ public class AuditHistoryService(
                 TableName = a.TableName,
                 RecordUuid = a.RecordUuid,
                 Action = a.Action,
-                OldData = (a.OldData == null) ? "Нет данных" : a.OldData,
-                NewData = (a.NewData == null) ? "Нет данных" : a.NewData,
+                OldData = a.OldData,
+                NewData = a.NewData,
                 ChangedAt = a.ChangedAt,
                 ChangedBy = a.ChangedBy
             })
