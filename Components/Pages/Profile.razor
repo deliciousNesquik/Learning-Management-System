@@ -1,9 +1,13 @@
 @page "/profile"
+@using LMS.Components.Shared
 @using LMS.Interfaces
 @using LMS.Services
 @using LMS.Models
+@using LMS.Models.UserManipulationResult
 @inject UserSessionAccessor Accessor
 @inject IUserSecurityService UserSecurityService
+@inject IAdminService AdminService
+@inject IModeratorService ModeratorService
 @inject IJSRuntime JS
 
 @rendermode InteractiveServer
@@ -95,7 +99,7 @@
 
                         <div class="d-grid">
                             <button class="btn btn-primary btn-sm py-2" type="button"
-                                    @*@onclick="ChangePasswordAsync"*@>
+                                    @onclick="OpenResetPassword">
                                 <i class="bi bi-key me-1"></i> Сменить пароль
                             </button>
                         </div>
@@ -179,9 +183,23 @@
     }
 </style>
 
+
+<ResetPasswordModal @bind-Password="_plainPassword"
+                    IsVisible="_showResetModal"
+                    IsSaved="_isSaved"
+                    OnConfirm="HandleResetPassword"
+                    OnClose="CancelReset" 
+                    ErrorMessage="@_errorMessage"/>
+
+
 @code {
     private DateTime? lastPasswordChangeDate;
     private string passwordChangeMessage = string.Empty;
+
+    private string? _plainPassword = "";
+    private string? _errorMessage = "";
+    private bool _showResetModal = false;
+    private bool _isSaved = false;
     
     private string GetLocalizedRole()
     {
@@ -203,9 +221,7 @@
     {
         try
         {
-            // isLoading = true;
             StateHasChanged();
-            
             lastPasswordChangeDate = await UserSecurityService.GetLastPasswordChangeDateAsync((Guid)Accessor.UserUuid);
             Console.WriteLine(lastPasswordChangeDate);
         }
@@ -219,14 +235,68 @@
         }
         finally
         {
-            //isLoading = false;
             StateHasChanged();
         }
     }
 
-    private async Task ChangePasswordAsync()
+    private void OpenResetPassword()
     {
-        StateHasChanged();
+        _errorMessage = null;
+        if (!Accessor.UserUuid.HasValue)
+        {
+            _errorMessage = "Ошибка доступа. У вас нет прав на изменение пароля.";
+            return;
+        }
+        _plainPassword = ""; 
+        _isSaved = false; 
+        _showResetModal = true;
+    }
+    
+    private void CancelReset()
+    {
+        _showResetModal = false;
+    }
+
+    private async Task HandleResetPassword()
+    {
+        if (string.IsNullOrWhiteSpace(_plainPassword) || !Accessor.UserUuid.HasValue)
+        {
+            _errorMessage = "Перезагрузите страницу и попробуйте снова.";
+            return;
+        }
+
+        ResetUserPasswordResult result = null;
+        
+        switch (Accessor.UserRole)
+        {
+            case "Admin":
+                result = await AdminService.ResetPasswordAsync((Guid)Accessor.UserUuid, _plainPassword);
+                break;
+            
+            case "Moderator":
+                result = await ModeratorService.ResetPasswordAsync((Guid)Accessor.UserUuid, _plainPassword);
+                break;
+            
+            case "Employee":
+                _errorMessage = "В разработке!";
+                break;
+            
+            default:
+                _errorMessage = "Ошибка. Пожалуйста перезайдите в аккаунт!";
+                return;
+        }
+        
+        if (result is { IsSuccess: true })
+        {
+            _isSaved = true;
+            StateHasChanged();
+        }
+        else
+        {
+            //_errorMessage = result.ErrorCode;
+            _isSaved = false;
+        }
+        
     }
 
     private string GetRoleBadgeClass()
