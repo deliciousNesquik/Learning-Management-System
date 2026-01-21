@@ -38,7 +38,6 @@
                 @foreach (var course in _courses)
                 {
                     <div class="col-md-4">
-                        @* Тут будет твоя карточка курса *@
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <span class="badge mb-2 me-2" style="background-color: @course.CategoryColor">@course.CategoryName</span>
@@ -54,6 +53,25 @@
                                 <small class="text-muted"><i class="bi bi-person"></i> Загрузил:  @course.AuthorName</small>
                                 <button class="btn btn-sm btn-outline-primary">Подробнее</button>
                             </div>
+                            
+                            @if (course.UpdatedAt.HasValue)
+                            {
+                                <div class="card-footer">
+                                    <small class="text-muted">
+                                        <i class="bi bi-pencil-square"></i> 
+                                        Последнее изменение: @course.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")
+                                    </small>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="card-footer">
+                                    <small class="text-muted">
+                                        @* <i class="bi bi-pencil-square"></i>  *@
+                                        Информация не изменялась с: @course.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                    </small>
+                                </div>
+                            }
                         </div>
                     </div>
                 }

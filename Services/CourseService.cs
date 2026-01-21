@@ -27,6 +27,14 @@ public class CourseService(IDbContextFactory<DatabaseContext> dbFactory) : ICour
                 EstimatedDurationMinutes = c.EstimatedDurationMinutes,
                 Status = c.Status,
                 CreatedAt = c.CreatedAt,
+                UpdatedAt = context.AuditHistories
+                    .Where(a => a.TableName == "COURSES" 
+                                && a.RecordUuid == c.Uuid 
+                                && a.Action == "UPDATE" 
+                                && a.ChangedAt > c.CreatedAt)
+                    .OrderByDescending(a => a.ChangedAt)
+                    .Select(a => (DateTime?)a.ChangedAt)
+                    .FirstOrDefault(),
                 MaterialCount = c.Materials.Count,
                 AssessmentCount = c.Assessments.Count,
                 AuthorName = $"{c.Author.Login}"

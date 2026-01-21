@@ -41,10 +41,7 @@
                 <li><a class="dropdown-item py-2" href="/support"><i class="bi bi-chat-dots me-2"></i>Поддержка</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-
-                    <button class="dropdown-item py-2 text-danger" @onclick="HandleLogout">
-                        <i class="bi bi-box-arrow-right me-2"></i>Выйти
-                    </button>
+                    <a href="account/logout" target="_top" class="btn btn-outline-danger dropdown-item py-2"><i class="bi bi-box-arrow-right me-2"></i> Выйти</a>
                 </li>
             </ul>
         </div>
@@ -113,12 +110,6 @@
 
 @code{
     private bool _showCopyMessage;
-    
-    private Task HandleLogout()
-    {
-        NavigationManager.NavigateTo("/account/logout", true);
-        return Task.CompletedTask;
-    }
     
     private async Task CopyUuidToClipboard()
     {

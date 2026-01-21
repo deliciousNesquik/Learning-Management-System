@@ -10,6 +10,7 @@ public class CourseListItemVm
     public int? EstimatedDurationMinutes { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public int MaterialCount { get; set; }
     public int AssessmentCount { get; set; }
     public string AuthorName { get; set; } = string.Empty;
