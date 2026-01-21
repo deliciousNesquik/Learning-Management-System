@@ -19,7 +19,7 @@
                 
                 <AuthorizeView Roles="Admin">
                     <Authorized>
-                        <li class="nav-item dropdown">
+                        <li class="nav-item dropdown dropdown-center">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 Администрирование
@@ -55,10 +55,10 @@
                 
                 <AuthorizeView Roles="Admin, Moderator">
                     <Authorized>
-                        <li class="nav-item dropdown">
+                        <li class="nav-item dropdown dropdown-center">
                             <a class="nav-link dropdown-toggle" href="#" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
-                                Курсы
+                                Управление уч. материалом
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 
@@ -75,12 +75,12 @@
                     </Authorized>
                 </AuthorizeView>
                 
-                <AuthorizeView Roles="Admin, Moderator">
+                <AuthorizeView Roles="Moderator">
                     <Authorized>
-                        <li class="nav-item dropdown">
+                        <li class="nav-item dropdown dropdown-center">
                             <a class="nav-link dropdown-toggle" href="#" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
-                                Обучение
+                                Управление обучением
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 @if (_canReadCoursesAssignments) { <li><a class="dropdown-item" href="/courses_assignments">Назначение обучения</a></li> }
@@ -98,7 +98,7 @@
                 
                 <AuthorizeView Roles="Employee">
                     <Authorized>
-                        <li class="nav-item dropdown">
+                        <li class="nav-item dropdown dropdown-center">
                             <a class="nav-link dropdown-toggle" href="#" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
                                 Обучение
@@ -116,25 +116,25 @@
                 </AuthorizeView>
                 
 
-                <AuthorizeView Roles="Admin, Moderator">
+                <AuthorizeView Roles="Moderator">
                     <Authorized>
-                        <li class="nav-item dropdown">
+                        <li class="nav-item dropdown dropdown-center">
                             <a class="nav-link dropdown-toggle" href="#" role="button"
                                data-bs-toggle="dropdown" aria-expanded="false">
-                                Сотрудники
+                                Обучающиеся
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 
-                                @if (_canReadEmployees) { <li><a class="dropdown-item" href="/employees">Сотрудники</a></li> }
-                                else if(!_canReadEmployees) { <li><a class="dropdown-item disabled" href="#">Сотрудники</a></li> }
+                                @if (_canReadEmployees) { <li><a class="dropdown-item" href="/employees">Обучающиеся</a></li> }
+                                else if(!_canReadEmployees) { <li><a class="dropdown-item disabled" href="#">Обучающиеся</a></li> }
                                 
                                 <li> <hr class="dropdown-divider"> </li>
                                 
-                                @if (_canReadEmployeesGroups) { <li><a class="dropdown-item" href="/employee_groups">Группы сотрудников</a></li> }
-                                else if(!_canReadEmployeesGroups) { <li><a class="dropdown-item disabled" href="#">Группы сотрудников</a></li> }
+                                @if (_canReadEmployeesGroups) { <li><a class="dropdown-item" href="/employee_groups">Группы обучающихся</a></li> }
+                                else if(!_canReadEmployeesGroups) { <li><a class="dropdown-item disabled" href="#">Группы обучающихся</a></li> }
                                 
-                                @if (_canReadGroupMembership) { <li><a class="dropdown-item" href="/group_membership">Назначение сотрудников в группы</a></li> }
-                                else if(!_canReadGroupMembership) { <li><a class="dropdown-item disabled" href="#">Назначение сотрудников в группы</a></li> }
+                                @if (_canReadGroupMembership) { <li><a class="dropdown-item" href="/group_membership">Назначение обучающихся в группы</a></li> }
+                                else if(!_canReadGroupMembership) { <li><a class="dropdown-item disabled" href="#">Назначение обучающихся в группы</a></li> }
                                 
                             </ul>
                         </li>

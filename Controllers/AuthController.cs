@@ -14,12 +14,12 @@ public class AuthController(AuthService authService) : ControllerBase
     {
         var principal = await authService.AuthenticateUser(login, password);
 
-        if (principal == null)
-            return Redirect("/login?error=true");
+        if (!string.IsNullOrEmpty(principal.ErrorMessage))
+            return Redirect($"/login?error={principal.ErrorMessage}");
 
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
-            principal,
+            principal.ClaimsPrincipal,
             new AuthenticationProperties { IsPersistent = true });
 
         return Redirect("/");

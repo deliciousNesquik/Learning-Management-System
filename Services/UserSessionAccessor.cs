@@ -73,6 +73,58 @@ public class UserSessionAccessor(IHttpContextAccessor httpContextAccessor, IServ
         }
     }
 
+    public List<Guid>? AllBranchUuids
+    {
+        get
+        {
+            var user = httpContextAccessor.HttpContext?.User;
+            var claim = user?.FindAll("BranchUuid")
+                .Select(c => Guid.TryParse(c.Value, out var guid) ? guid : Guid.Empty).Where(id => id != Guid.Empty)
+                .ToList();
+            return claim;
+        }
+    }
+
+    public Guid? ActiveBranchUuid
+    {
+        get
+        {
+            var context = httpContextAccessor.HttpContext;
+            if (context == null) return null;
+
+            // 1. Проверяем, нет ли в браузере специальной куки "выбранный филиал"
+            var cookieValue = context.Request.Cookies["ActiveBranchOverride"];
+            if (Guid.TryParse(cookieValue, out var cookieGuid))
+            {
+                // ОБЯЗАТЕЛЬНО: проверяем, что этот филиал действительно принадлежит пользователю
+                if (AllBranchUuids?.Contains(cookieGuid) == true)
+                    return cookieGuid;
+            }
+
+            // 2. Если куки нет, берем тот, который мы записали в клеймы при логине
+            var claim = context.User.FindFirst("ActiveBranchUuid");
+            if (claim != null && Guid.TryParse(claim.Value, out var guid))
+            {
+                return guid;
+            }
+            return null;
+        }
+        set
+        {
+            var context = httpContextAccessor.HttpContext;
+            if (context != null && value.HasValue)
+            {
+                // Записываем выбор пользователя в простую куку
+                context.Response.Cookies.Append("ActiveBranchOverride", value.Value.ToString(), new CookieOptions
+                {
+                    Expires = DateTimeOffset.UtcNow.AddDays(30),
+                    HttpOnly = true, // чтобы нельзя было украсть через JS
+                    Secure = true
+                });
+            }
+        }
+    }
+
 
     public async Task<bool> HasPermission(string source, SqlOperation operation)
     {

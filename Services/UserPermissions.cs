@@ -30,7 +30,7 @@ public class UserPermissions(IDbContextFactory<DatabaseContext> dbFactory)
     (DbSchemaConstants.GroupMemberships, "Членство в группах", false),
 
     // --- Обучение (Курсы) ---
-    (DbSchemaConstants.Courses, "Курсы", true),
+    (DbSchemaConstants.Courses, "Курсы", false),
     (DbSchemaConstants.CoursesActivities, "Типы активностей", true),
     (DbSchemaConstants.CoursesCategories, "Категории курсов", true),
     (DbSchemaConstants.CoursesStatuses, "Статусы курсов", true),
@@ -38,12 +38,12 @@ public class UserPermissions(IDbContextFactory<DatabaseContext> dbFactory)
     (DbSchemaConstants.CoursesEnrollments, "Прохождение курсов", false),
 
     // --- Материалы ---
-    (DbSchemaConstants.Materials, "Материалы", true),
+    (DbSchemaConstants.Materials, "Материалы", false),
     (DbSchemaConstants.MaterialsTypes, "Типы материалов", true),
     (DbSchemaConstants.MaterialsCoursesList, "Материалы к курсам", true),
 
     // --- Тестирование (Assessments) ---
-    (DbSchemaConstants.Assessments, "Тесты", true),
+    (DbSchemaConstants.Assessments, "Тесты", false),
     (DbSchemaConstants.AssessmentsAttempts, "Попытки тестирований", false),
     (DbSchemaConstants.Questions, "Вопросы", true),
     (DbSchemaConstants.QuestionsTypes, "Типы вопросов", true),

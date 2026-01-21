@@ -17,7 +17,7 @@ public sealed class CreateUserResult
         => new(true, uuid, null);
 
     public static CreateUserResult LoginAlreadyExists()
-        => new(false, null, "USER_EXISTS");
+        => new(false, null, "Пользователь уже существует");
     
     public static CreateUserResult UnknownError(string errorCode)
         => new(false, null, errorCode);

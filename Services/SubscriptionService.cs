@@ -215,4 +215,24 @@ public class SubscriptionService(IDbContextFactory<DatabaseContext> dbFactory) :
             .Select(c => new CourseLookupVm(c.Uuid, c.Name))
             .ToListAsync();
     }
+
+    public async Task<List<Guid>> GetAllAvailableCourses(Guid branchUuid)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync();
+    
+        // Получаем текущую дату для проверки срока действия
+        var now = DateTime.UtcNow;
+
+        return await db.Subscriptions
+            .AsNoTracking()
+            // Фильтруем подписки: для нужного филиала, активные и не просроченные
+            .Where(s => s.BranchUuid == branchUuid && s.IsActive && s.EndDate > now)
+            // Выбираем курсы из связующей таблицы SubscriptionCourseList
+            .SelectMany(s => s.Courses) 
+            // Нам нужны только UUID самих курсов
+            .Select(sc => sc.CourseUuid)
+            // Убираем дубликаты (если один курс есть в нескольких активных подписках)
+            .Distinct()
+            .ToListAsync();
+    }
 }

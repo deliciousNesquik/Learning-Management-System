@@ -223,7 +223,6 @@
         {
             StateHasChanged();
             lastPasswordChangeDate = await UserSecurityService.GetLastPasswordChangeDateAsync((Guid)Accessor.UserUuid);
-            Console.WriteLine(lastPasswordChangeDate);
         }
         catch (Exception ex)
         {

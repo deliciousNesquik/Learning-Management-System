@@ -1,41 +1,91 @@
 @page "/courses"
+@using LMS.Components.Shared
 @using LMS.Models
 @using LMS.Services
+@using LMS.ViewModels.CourseViewModel
+@using LMS.Data 
+@using LMS.Interfaces
+@using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 @rendermode InteractiveServer
 @inject UserSessionAccessor UserSessionAccessor
+@inject ISubscriptionService SubscriptionService
+@inject ICourseService CourseService
 @inject NavigationManager NavigationManager
 
+<AccessControl IsLoaded="_isLoaded" CanRead="_canRead" PageName="Курсы">
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">Каталог курсов</h2>
+            @if (_canInsert)
+            {
+                <button class="btn btn-primary">Создать курс</button>
+            }
+        </div>
 
+        @if (_courses == null)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+        }
+        else if (!_courses.Any())
+        {
+            <div class="alert alert-info">Курсы пока не добавлены.</div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var course in _courses)
+                {
+                    <div class="col-md-4">
+                        @* Тут будет твоя карточка курса *@
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <span class="badge mb-2 me-2" style="background-color: @course.CategoryColor">@course.CategoryName</span>
+                                
+                                @if(_availableCourses != null && _availableCourses.Contains(course.Uuid))
+                                {
+                                    <span class="badge bg-success mb-2">Доступен в подписке!</span>
+                                }
+                                <h5 class="card-title fw-bold">@course.Name</h5>
+                                <p class="card-text text-muted small">@course.ShortDescription</p>
+                            </div>
+                            <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                                <small class="text-muted"><i class="bi bi-person"></i> Загрузил:  @course.AuthorName</small>
+                                <button class="btn btn-sm btn-outline-primary">Подробнее</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</AccessControl>
 
 @code {
     private bool _canRead, _canInsert, _canUpdate, _canDelete;
-    private Guid? _userUuid;
-    
-    
+    private bool _isLoaded;
+    private List<CourseListItemVm>? _courses;
+    private List<Guid>? _availableCourses;
+
     protected override async Task OnInitializedAsync()
     {
-        _userUuid = UserSessionAccessor.UserUuid;
-        if (_userUuid.HasValue)
+        if (UserSessionAccessor.UserUuid.HasValue)
         {
-            _canRead = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Select);
-            _canUpdate = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Update);
-            _canInsert = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Insert);
-            _canDelete = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Delete);
+            _canRead = await UserSessionAccessor.HasPermission(DbSchemaConstants.Courses, SqlOperation.Select);
+            _canUpdate = await UserSessionAccessor.HasPermission(DbSchemaConstants.Courses, SqlOperation.Update);
+            _canInsert = await UserSessionAccessor.HasPermission(DbSchemaConstants.Courses, SqlOperation.Insert);
+            _canDelete = await UserSessionAccessor.HasPermission(DbSchemaConstants.Courses, SqlOperation.Delete);
 
             if (_canRead)
             {
-                //DefineTableColumns();
-                //await LoadData(_query);
-                //await LoadStats();
+                _courses = await CourseService.GetCoursesForCardsAsync();
+                if (UserSessionAccessor.UserRole == "Moderator" && UserSessionAccessor.ActiveBranchUuid.HasValue)
+                {
+                    _availableCourses = await SubscriptionService.GetAllAvailableCourses((Guid)UserSessionAccessor.ActiveBranchUuid);
+                }
             }
         }
-        
-        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("search", out var searchValue))
-        {
-            //_query.Search = searchValue;
-            //await LoadData(_query);
-        }
-        
+        _isLoaded = true;
     }
 }

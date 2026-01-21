@@ -13,11 +13,11 @@
             <form action="account/login" method="post">
                 <AntiforgeryToken />
 
-                @if (Error)
+                @if (!string.IsNullOrEmpty(Error))
                 {
-                    <div class="alert alert-danger py-2 small">
+                    <div class="alert alert-danger py-2 small animate-shake">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        Неверный логин или пароль
+                        @TranslateError(Error)
                     </div>
                 }
 
@@ -82,6 +82,15 @@
 </style>
 
 @code {
-    [SupplyParameterFromQuery]
-    public bool Error { get; set; }
+    [SupplyParameterFromQuery(Name = "Error")]
+    public string? Error { get; set; }
+
+    private string TranslateError(string errorCode) => errorCode switch
+    {
+        "ERR_INVALID_CREDENTIALS" => "Неверный логин или пароль",
+        "ERR_NO_ORGANIZATION" => "Ваш аккаунт не привязан ни к одной организации",
+        "ERR_SUBSCRIPTION_EXPIRED" => "Доступ закрыт: подписка организации истекла",
+        "true" => "Произошла ошибка при входе", // На случай старых редиректов ?Error=true
+        _ => "Произошла непредвиденная ошибка"
+    };
 }

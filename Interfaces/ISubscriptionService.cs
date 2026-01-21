@@ -30,4 +30,11 @@ public interface ISubscriptionService
     /// Получение списка всех доступных курсов для выбора в выпадающем списке
     /// </summary>
     Task<List<CourseLookupVm>> GetAllCoursesForLookupAsync();
+
+    /// <summary>
+    /// Список доступных курсов для филиала
+    /// </summary>
+    /// <param name="branchUuid">Идентификатор филиала</param>
+    /// <returns></returns>
+    Task<List<Guid>> GetAllAvailableCourses(Guid branchUuid);
 }
