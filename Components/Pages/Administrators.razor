@@ -5,6 +5,7 @@
 @using LMS.Models
 @using LMS.Models.UserManipulationResult
 @using LMS.Services
+@using LMS.Utilities
 @using LMS.ViewModels
 @using LMS.ViewModels.AdminViewModel
 @using Microsoft.AspNetCore.Authorization
@@ -96,42 +97,44 @@
                     <EditForm Model="@_createModel" OnValidSubmit="HandleCreate">
                         <DataAnnotationsValidator/>
                         <div class="modal-body p-4">
-                            <div class="mb-4">
-                                <label class="form-label fw-bold small text-muted">ЛОГИН</label>
-                                <div class="input-group custom-input-group">
-                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-person text-primary"></i></span>
-                                    <InputText @bind-Value="_createModel.Login" class="form-control border-start-0" placeholder="Логин"/>
-                                </div>
-                                <ValidationMessage For="@(() => _createModel.Login)" class="text-danger small"/>
-                            </div>
+                            
                             <div class="mb-3">
-                                <label class="form-label fw-bold small text-muted">ПАРОЛЬ</label>
-                                <div class="input-group custom-input-group">
-                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-key text-primary"></i></span>
-                                    <InputText @bind-Value="_createModel.PlainPassword" class="form-control border-start-0" placeholder="Пароль"/>
+                                <label class="form-label small fw-bold">Логин</label>
+                                <div class="input-group">
+                                    <input class="form-control bg-light" @bind="_createModel.Login" type="text" />
+                                    <button type="button" class="btn btn-outline-secondary" @onclick="GenerateLogin">Ген.</button>
                                 </div>
-                                <ValidationMessage For="@(() => _createModel.PlainPassword)" class="text-danger small"/>
+                                <ValidationMessage For="@(() => _createModel.Login)" class="text-danger small" />
                             </div>
                             
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Пароль</label>
+                                <div class="input-group">
+                                    <input class="form-control bg-light" @bind="_createModel.PlainPassword" type="text" />
+                                    <button type="button" class="btn btn-outline-secondary" @onclick="GeneratePassword">Ген.</button>
+                                </div>
+                                <ValidationMessage For="@(() => _createModel.PlainPassword)" class="text-danger small" />
+                            </div>
+
                             <div class="mb-3">
                                 <label class="form-label fw-bold small text-muted">Фамилия</label>
                                 <InputText @bind-Value="_createModel.Surname" class="form-control"/>
                                 <ValidationMessage For="@(() => _createModel.Surname)"/>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label class="form-label fw-bold small text-muted">Имя</label>
                                 <InputText @bind-Value="_createModel.Name" class="form-control"/>
                                 <ValidationMessage For="@(() => _createModel.Name)"/>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label class="form-label fw-bold small text-muted">Отчество</label>
                                 <InputText @bind-Value="_createModel.Patronymic" class="form-control"/>
                                 <ValidationMessage For="@(() => _createModel.Patronymic)"/>
                             </div>
-                            
-                            
+
+
                             @* --- БЛОК ОШИБКИ --- *@
                             @if (!string.IsNullOrEmpty(_errorMessage))
                             {
@@ -235,37 +238,12 @@
     </div>
 }
 
-@* МОДАЛЬНОЕ ОКНО СБРОСА ПАРОЛЯ *@
-@if (_showResetModal && _canUpdate)
-{
-    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white border-0 text-center">
-                    <h5 class="modal-title w-100 fw-bold"><i class="bi bi-key me-2"></i> Сброс пароля</h5>
-                </div>
-                <div class="modal-body p-4 text-center">
-                    @if (!_isSaved)
-                    {
-                        <p class="text-muted">Введите новый пароль для пользователя:</p>
-                        <input type="text" @bind="_plainPassword" class="form-control form-control-lg text-center fw-bold" placeholder="••••••••"/>
-                        <div class="d-flex justify-content-center mt-4 gap-2">
-                            <button class="btn btn-light px-4" @onclick="() => _showResetModal = false">Отмена</button>
-                            <button class="btn btn-primary px-4 fw-bold" @onclick="HandleResetPassword" disabled="@(string.IsNullOrEmpty(_plainPassword))">Обновить</button>
-                        </div>
-                    }
-                    else
-                    {
-                        <i class="bi bi-check-circle text-success fs-1"></i>
-                        <p class="mt-2 fw-bold">Пароль успешно обновлен!</p>
-                        <div class="p-3 bg-light border rounded mb-3"><code>@_plainPassword</code></div>
-                        <button class="btn btn-dark w-100" @onclick="() => _showResetModal = false">Закрыть</button>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-}
+<ResetPasswordModal @bind-Password="_plainPassword"
+                    IsVisible="_showResetModal"
+                    IsSaved="_isSaved"
+                    OnConfirm="HandleResetPassword"
+                    OnClose="CancelReset" 
+                    ErrorMessage="@_errorMessage"/>
 
 <ConfirmDeleteModal 
     IsVisible="_showDeleteModal"
@@ -403,6 +381,7 @@
 
     private void OpenAddModal()
     {
+        _errorMessage = null;
         if (!_canInsert)
         {
             _errorMessage = "Ошибка доступа. У вас нет прав на создание.";
@@ -447,6 +426,7 @@
     
     private void OpenEditModal(AdminListItemVm admin)
     {
+        _errorMessage = null;
         if (!_canUpdate)
         {
             _errorMessage = "Ошибка доступа. У вас нет прав на изменение.";
@@ -497,8 +477,13 @@
         finally { _isProcessing = false; }
     }
 
+    private void GeneratePassword() => _createModel.PlainPassword = UsersDataGenerator.GeneratePassword();
+    private void GenerateLogin() => _createModel.Login = UsersDataGenerator.GenerateLogin("admin_");
+
+    
     private void OpenResetPassword(AdminListItemVm admin)
     {
+        _errorMessage = null;
         if (!_canUpdate)
         {
             _errorMessage = "Ошибка доступа. У вас нет прав на изменение пароля.";
@@ -510,19 +495,40 @@
         _isSaved = false; 
         _showResetModal = true;
     }
+    
+    private void CancelReset()
+    {
+        _showResetModal = false;
+    }
 
     private async Task HandleResetPassword()
     {
-        if (!_canUpdate || string.IsNullOrWhiteSpace(_plainPassword)) return;
-        _errorMessage = null;
+        if (!_canUpdate || string.IsNullOrWhiteSpace(_plainPassword) || !_selectedObjectUuid.HasValue)
+        {
+            _errorMessage = "Произошла ошибка...";
+            return;
+        }
         _isProcessing = true;
-        await AdminService.ResetPasswordAsync((Guid)_selectedObjectUuid, _plainPassword);
-        _isSaved = true;
-        _isProcessing = false;
+        
+        var result = await AdminService.ResetPasswordAsync((Guid)_selectedObjectUuid, _plainPassword);
+        if (result.IsSuccess)
+        {
+            _isSaved = true;
+            _isProcessing = false;
+            StateHasChanged();
+        }
+        else
+        {
+            _errorMessage = result.ErrorCode;
+            _isSaved = false;
+            _isProcessing = false;
+        }
+        
     }
     
     private async Task HandleDelete()
     {
+        _errorMessage = null;
         if (!_canDelete)
         {
             _errorMessage = "Ошибка доступа. У вас нет прав на удаление.";

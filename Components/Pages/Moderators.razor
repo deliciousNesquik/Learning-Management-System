@@ -4,6 +4,7 @@
 @using LMS.Interfaces
 @using LMS.Models
 @using LMS.Services
+@using LMS.Utilities
 @using LMS.ViewModels
 @using LMS.ViewModels.BranchViewModel
 @using LMS.ViewModels.ModeratorViewModel
@@ -134,11 +135,16 @@
                                 }
                             </select>
                         </div>
+                        
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Логин</label>
-                            <input class="form-control bg-light" @bind="createModel.Login" placeholder="username" />
+                            <div class="input-group">
+                                <input class="form-control bg-light" @bind="createModel.Login" type="text" />
+                                <button type="button" class="btn btn-outline-secondary" @onclick="GenerateLogin">Ген.</button>
+                            </div>
                             <ValidationMessage For="@(() => createModel.Login)" class="text-danger small" />
                         </div>
+                        
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Пароль</label>
                             <div class="input-group">
@@ -261,37 +267,14 @@
     </div>
 }
 
-@* МОДАЛЬНОЕ ОКНО СБРОСА ПАРОЛЯ *@
-@if (showResetModal && canUpdate)
-{
-    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white border-0 text-center">
-                    <h5 class="modal-title w-100 fw-bold"><i class="bi bi-key me-2"></i> Сброс пароля</h5>
-                </div>
-                <div class="modal-body p-4 text-center">
-                    @if (!isSaved)
-                    {
-                        <p class="text-muted">Введите новый пароль для пользователя:</p>
-                        <input type="text" @bind="plainPassword" class="form-control form-control-lg text-center fw-bold" placeholder="••••••••"/>
-                        <div class="d-flex justify-content-center mt-4 gap-2">
-                            <button class="btn btn-light px-4" @onclick="() => showResetModal = false">Отмена</button>
-                            <button class="btn btn-primary px-4 fw-bold" @onclick="HandleResetPassword" disabled="@(string.IsNullOrEmpty(plainPassword))">Обновить</button>
-                        </div>
-                    }
-                    else
-                    {
-                        <i class="bi bi-check-circle text-success fs-1"></i>
-                        <p class="mt-2 fw-bold">Пароль успешно обновлен!</p>
-                        <div class="p-3 bg-light border rounded mb-3"><code>@plainPassword</code></div>
-                        <button class="btn btn-dark w-100" @onclick="() => showResetModal = false">Закрыть</button>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-}
+
+
+<ResetPasswordModal @bind-Password="plainPassword"
+                    IsVisible="showResetModal"
+                    IsSaved="isSaved"
+                    OnConfirm="HandleResetPassword"
+                    OnClose="CancelReset" 
+                    ErrorMessage="@errorMessage"/>
 
 <ConfirmDeleteModal 
     IsVisible="showDeleteModal"
@@ -539,11 +522,10 @@
         }
         isProcessing = false;
     }
-
-    // Вспомогательные методы
-    private void GeneratePassword() => createModel.PlainPassword = Guid.NewGuid().ToString()[..8];
-    private void GoToOrg(Guid orgUuid) => NavigationManager.NavigateTo($"/organizations?open={orgUuid}");
-    private async Task CopyToClipboard(string text) => await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    
+    private void GeneratePassword() => createModel.PlainPassword = UsersDataGenerator.GeneratePassword();
+    private void GenerateLogin() => createModel.Login = UsersDataGenerator.GenerateLogin("moder_");
+    
     
     private void OpenResetPassword(ModeratorListItemVm moderator)
     {
@@ -554,6 +536,11 @@
             isSaved = false;
             showResetModal = true;
         }
+    }
+    
+    private void CancelReset()
+    {
+        showResetModal = false;
     }
 
     private async Task HandleResetPassword()

@@ -26,7 +26,7 @@ public class UserSecurityService(DatabaseContext context) : IUserSecurityService
                 })
                 .ToListAsync();
 
-            // Фильтруем на клиенте - ищем где изменился пароль
+            // Фильтруем на клиенте - ищем, где изменился пароль
             foreach (var update in allUpdates)
                 try
                 {

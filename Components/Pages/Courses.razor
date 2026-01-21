@@ -1,0 +1,41 @@
+@page "/courses"
+@using LMS.Models
+@using LMS.Services
+@rendermode InteractiveServer
+@inject UserSessionAccessor UserSessionAccessor
+@inject NavigationManager NavigationManager
+
+
+
+@code {
+    private bool _canRead, _canInsert, _canUpdate, _canDelete;
+    private Guid? _userUuid;
+    
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _userUuid = UserSessionAccessor.UserUuid;
+        if (_userUuid.HasValue)
+        {
+            _canRead = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Select);
+            _canUpdate = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Update);
+            _canInsert = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Insert);
+            _canDelete = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Delete);
+
+            if (_canRead)
+            {
+                //DefineTableColumns();
+                //await LoadData(_query);
+                //await LoadStats();
+            }
+        }
+        
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("search", out var searchValue))
+        {
+            //_query.Search = searchValue;
+            //await LoadData(_query);
+        }
+        
+    }
+}
