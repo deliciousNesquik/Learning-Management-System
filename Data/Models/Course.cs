@@ -6,34 +6,31 @@ namespace LMS.Data.Models;
 [Table("courses", Schema = "public")]
 public class Course
 {
-    [Key] 
-    [Column("uuid")] 
-    public Guid Uuid { get; init; }
-    
-    [Column("category_uuid")] 
-    public Guid CategoryUuid { get; set; }
-    
-    [Column("author_uuid")] 
-    public Guid AuthorUuid { get; set; }
-    
-    [Column("name")] 
+    [Key]
+    public Guid Uuid { get; set; } = Guid.NewGuid();
+        
+    [Required, MaxLength(255)]
     public string Name { get; set; } = string.Empty;
-    
-    [Column("description")] 
-    public string Description { get; set; } = string.Empty;
-
-    [Column("status")] 
+        
+    [Required]
+    public Guid CategoryUuid { get; set; }
+        
+    public string? Description { get; set; }
+        
+    [Required, MaxLength(50)]
     public string Status { get; set; } = "draft";
-    
-    [Column("estimated_duration_minutes")] 
-    public int Duration { get; set; } = 0;
-    
-    [Column("created_at")]
-    public DateTime CreatedAt { get; set; }
-
-    [ForeignKey(nameof(CategoryUuid))]
-    public CoursesCategories CoursesCategories { get; set; } = null!;
-    
-    [ForeignKey(nameof(AuthorUuid))]
-    public Administrator Administrators { get; set; } = null!;
+        
+    [Required]
+    public Guid AuthorUuid { get; set; }
+        
+    public int? EstimatedDurationMinutes { get; set; }
+        
+    [Required]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        
+    // Навигационные свойства
+    public CourseCategory Category { get; set; } = null!;
+    public Administrator Author { get; set; } = null!;
+    public ICollection<MaterialCourse> Materials { get; set; } = new List<MaterialCourse>();
+    public ICollection<AssessmentCourse> Assessments { get; set; } = new List<AssessmentCourse>();
 }

@@ -34,4 +34,12 @@ public class DatabaseContext : DbContext
     public DbSet<AuditHistory> AuditHistories { get; set; }
     public DbSet<Subscription> Subscriptions { get; set; }
     public DbSet<SubscriptionCourseList> SubscriptionsCourses { get; set; }
+    public DbSet<Assessment> Assessments { get; set; }
+    public DbSet<AssessmentCourse> AssessmentsCourses { get; set; }
+    public DbSet<Course> Courses { get; set; }
+    public DbSet<CourseCategory> CourseCategories { get; set; }
+    public DbSet<Material> Materials { get; set; }
+    public DbSet<MaterialCourse>  MaterialsCourses { get; set; }
+    public DbSet<MaterialType> MaterialTypes { get; set; }
+    
 }

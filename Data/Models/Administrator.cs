@@ -30,4 +30,7 @@ public class Administrator
     
     [Column("patronymic")] 
     public string? Patronymic { get; set; } = string.Empty;
+    
+    public ICollection<Course> CreatedCourses { get; set; } = new List<Course>();
+    public ICollection<CourseCategory> CreatedCategories { get; set; } = new List<CourseCategory>();
 }
