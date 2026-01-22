@@ -1,0 +1,390 @@
+@using LMS.Components.Table
+@typeparam TItem
+@inject IJSRuntime JSRuntime
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <!-- Панель управления -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center gap-3 w-75">
+                <input class="form-control w-50"
+                       placeholder="Поиск..."
+                       value="@Query.Search"
+                       @oninput="OnSearchChanged" />
+                
+                @*@if (FilterTemplates.Any())
+                {
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                                type="button" 
+                                id="filterDropdown" 
+                                data-bs-toggle="dropdown">
+                            Фильтры
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                            @foreach (var filter in FilterTemplates)
+                            {
+                                <li>
+                                    <div class="px-3 py-2">
+                                        @filter
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    </div>*@
+                    
+                <!-- Активные фильтры -->
+                @if (Query.Filters.Any())
+                {
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        @foreach (var filter in Query.Filters)
+                        {
+                            <span class="badge bg-primary-subtle text-primary d-flex align-items-center gap-1 p-1">
+                                <span class="fw-medium">@GetFilterDisplayName(filter.Key)</span>
+                                <span class="text-muted">:</span>
+                                <span class="fw-bold">@GetFilterValueDisplay(filter)</span>
+                                <button type="button" class="btn-close btn-close-xs ms-1" 
+                                        @onclick="() => RemoveFilter(filter.Key)"></button>
+                            </span>
+                        }
+                        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center" 
+                                @onclick="ClearAllFilters">
+                            <i class="bi bi-x-circle me-1"></i> Сбросить все
+                        </button>
+                    </div>
+                }
+                    
+                    
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                                type="button" 
+                                id="filterDropdown" 
+                                data-bs-toggle="dropdown" 
+                                aria-expanded="false"
+                                @onclick:stopPropagation>
+                            <i class="bi bi-funnel me-1"></i> Фильтры (@Query.Filters.Count)
+                        </button>
+                        <div class="dropdown-menu p-3 dropdown-menu-end" style="width: 300px;" 
+                             @onmouseleave="@(() => _isFilterDropdownOpen = false)">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Фильтры</h6>
+                                <button type="button" class="btn-close btn-sm" 
+                                        @onclick="@(() => _isFilterDropdownOpen = false)"></button>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            
+                            @foreach (var filterTemplate in FilterTemplates)
+                            {
+                                <div class="mb-3">
+                                    @filterTemplate
+                                </div>
+                            }
+                            
+                            <div class="dropdown-divider mt-2"></div>
+                            <div class="d-flex justify-content-end gap-2 mt-2">
+                                <button class="btn btn-sm btn-outline-secondary" 
+                                        @onclick="@(() => _isFilterDropdownOpen = false)">
+                                    Отмена
+                                </button>
+                                <button class="btn btn-sm btn-primary" 
+                                        @onclick="ApplyFilters">
+                                    Применить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @*}*@
+                
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-nowrap small text-muted">Элементов на странице:</span>
+                    <select class="form-select form-select-sm w-auto"
+                            value="@Query.PageSize"
+                            @onchange="OnPageSizeChanged">
+                        @foreach (var size in PageSizeOptions)
+                        {
+                            <option value="@size">@size</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleSortOptions" title="Сортировка">
+                    <i class="bi bi-funnel"></i> Сортировка
+                </button>
+                <button class="btn btn-outline-success btn-sm" @onclick="ExportToCsv" title="Выгрузить в CSV">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- Сетка карточек -->
+        <div class="row g-4">
+            @if (Items == null || !Items.Any())
+            {
+                <div class="col-12 text-center py-5">
+                    @if (IsLoading)
+                    {
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">Данные не найдены</div>
+                    }
+                </div>
+            }
+            else
+            {
+                @foreach (var item in CurrentPageItems)
+                {
+                    <div class="col-md-4">
+                        @if (CardTemplate != null)
+                        {
+                            @CardTemplate(item)
+                        }
+                        else
+                        {
+                            <!-- Шаблон по умолчанию для отладки -->
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">@item?.ToString()</h5>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Пагинация -->
+        @if (Items != null && Items.Any() && TotalPages > 1)
+        {
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <span class="text-muted small">
+                    Показано с @((Query.Page - 1) * Query.PageSize + 1) по @Math.Min(Query.Page * Query.PageSize, TotalCount) из @TotalCount
+                </span>
+
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(Query.Page == 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="PrevPage" disabled="@(Query.Page == 1)">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        </li>
+                        
+                        @for (int i = 1; i <= TotalPages; i++)
+                        {
+                            if (TotalPages <= 7 || i == 1 || i == TotalPages || 
+                                (i >= Query.Page - 2 && i <= Query.Page + 2))
+                            {
+                                var pageNumber = i;
+                                <li class="page-item @(Query.Page == pageNumber ? "active" : "")">
+                                    <button class="page-link" @onclick="() => GoToPage(pageNumber)">@pageNumber</button>
+                                </li>
+                            }
+                            else if (i == Query.Page - 3 || i == Query.Page + 3)
+                            {
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            }
+                        }
+                        
+                        <li class="page-item @(Query.Page == TotalPages ? "disabled" : "")">
+                            <button class="page-link" @onclick="NextPage" disabled="@(Query.Page == TotalPages)">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+
+        <!-- Модальное окно для сортировки -->
+        @if (_showSortModal)
+        {
+            <div class="modal fade show d-block" style="background: rgba(0,0,0,0.5)" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content shadow">
+                        <div class="modal-header py-2">
+                            <h5 class="modal-title">Сортировка</h5>
+                            <button type="button" class="btn-close" @onclick="() => _showSortModal = false"></button>
+                        </div>
+                        <div class="modal-body">
+                            @foreach (var sortOption in SortOptions)
+                            {
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" 
+                                           name="sortOptions" 
+                                           id="@sortOption.Key" 
+                                           checked="@(Query.SortBy == sortOption.Key)"
+                                           @onchange="() => ApplySort(sortOption.Key)">
+                                    <label class="form-check-label" for="@sortOption.Key">@sortOption.Value</label>
+                                </div>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(Query.SortBy))
+                            {
+                                <div class="form-check form-switch mt-3">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="sortDesc" 
+                                           checked="@Query.SortDesc"
+                                           @onchange="ToggleSortDirection">
+                                    <label class="form-check-label" for="sortDesc">По убыванию</label>
+                                </div>
+                            }
+                        </div>
+                        <div class="modal-footer py-1">
+                            <button class="btn btn-secondary btn-sm" @onclick="() => _showSortModal = false">Отмена</button>
+                            <button class="btn btn-primary btn-sm" @onclick="() => _showSortModal = false">Применить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<TItem>? Items { get; set; }
+    [Parameter, EditorRequired] public int TotalCount { get; set; }
+    [Parameter, EditorRequired] public TableQuery Query { get; set; } = new();
+    [Parameter, EditorRequired] public EventCallback<TableQuery> OnQueryChanged { get; set; }
+    [Parameter] public RenderFragment<TItem>? CardTemplate { get; set; }
+    [Parameter] public List<RenderFragment>? FilterTemplates { get; set; } = new();
+    [Parameter] public Dictionary<string, string> SortOptions { get; set; } = new();
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public string StorageKey { get; set; } = "";
+    [Parameter] public List<int> PageSizeOptions { get; set; } = [6, 12, 18, 24];
+    [Parameter] public Dictionary<string, string>? FilterDisplayNames { get; set; } = new();
+
+    private bool _showSortModal;
+    private bool _isFilterDropdownOpen;
+    private List<TItem> CurrentPageItems => Items?.Skip((Query.Page - 1) * Query.PageSize).Take(Query.PageSize).ToList() ?? new();
+    private int TotalPages => (int)Math.Ceiling((double)TotalCount / Query.PageSize);
+
+    protected override Task OnInitializedAsync()
+    {
+        return Task.CompletedTask;
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!string.IsNullOrEmpty(StorageKey))
+        {
+            var savedPageSize = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"{StorageKey}_pageSize");
+            if (int.TryParse(savedPageSize, out int pageSize) && PageSizeOptions.Contains(pageSize))
+            {
+                Query.PageSize = pageSize;
+            }
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        _isFilterDropdownOpen = false;
+        await OnQueryChanged.InvokeAsync(Query);
+    }
+    
+    private async Task ClearAllFilters()
+    {
+        Query.Filters.Clear();
+        Query.Page = 1;
+        await OnQueryChanged.InvokeAsync(Query);
+    }
+    
+    private async Task RemoveFilter(string key)
+    {
+        if (Query.Filters.Remove(key))
+        {
+            Query.Page = 1;
+            await OnQueryChanged.InvokeAsync(Query);
+        }
+    }
+    
+    private string GetFilterDisplayName(string key)
+    {
+        return FilterDisplayNames?.GetValueOrDefault(key, key) 
+               ?? char.ToUpper(key[0]) + key[1..].Replace("_", " ");
+    }
+    
+    private string GetFilterValueDisplay(KeyValuePair<string, object?> filter)
+    {
+        if (filter.Value == null) return "пусто";
+        
+        return filter.Value switch
+        {
+            bool b => b ? "Да" : "Нет",
+            DateTime dt => dt.ToString("dd.MM.yyyy"),
+            IEnumerable<string> list => string.Join(", ", list.Take(3)) + (list.Count() > 3 ? "..." : ""),
+            _ => filter.Value.ToString() ?? "не указано"
+        };
+    }
+    
+    private async Task OnSearchChanged(ChangeEventArgs e)
+    {
+        Query.Search = e.Value?.ToString() ?? "";
+        Query.Page = 1;
+        await OnQueryChanged.InvokeAsync(Query);
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newSize) && PageSizeOptions.Contains(newSize))
+        {
+            Query.PageSize = newSize;
+            Query.Page = 1;
+            
+            if (!string.IsNullOrEmpty(StorageKey))
+            {
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", $"{StorageKey}_pageSize", newSize.ToString());
+            }
+            
+            await OnQueryChanged.InvokeAsync(Query);
+        }
+    }
+
+    private void ToggleSortOptions() => _showSortModal = true;
+
+    private async Task ApplySort(string sortBy)
+    {
+        if (Query.SortBy == sortBy)
+        {
+            Query.SortDesc = !Query.SortDesc;
+        }
+        else
+        {
+            Query.SortBy = sortBy;
+            Query.SortDesc = false;
+        }
+        
+        await OnQueryChanged.InvokeAsync(Query);
+    }
+
+    private async Task ToggleSortDirection(ChangeEventArgs e)
+    {
+        if (e.Value is bool isChecked)
+        {
+            Query.SortDesc = isChecked;
+            await OnQueryChanged.InvokeAsync(Query);
+        }
+    }
+
+    private async Task GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages && page != Query.Page)
+        {
+            Query.Page = page;
+            await OnQueryChanged.InvokeAsync(Query);
+        }
+    }
+
+    private async Task PrevPage() => await GoToPage(Query.Page - 1);
+    private async Task NextPage() => await GoToPage(Query.Page + 1);
+
+    private Task ExportToCsv()
+    {
+        // Реализация экспорта в CSV
+        return Task.CompletedTask;
+    }
+}

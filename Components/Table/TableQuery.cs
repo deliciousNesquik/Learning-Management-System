@@ -12,4 +12,6 @@ public sealed class TableQuery
 
     public string? SortBy { get; set; }
     public bool SortDesc { get; set; }
+    
+    public Dictionary<string, object?> Filters { get; set; } = new();
 }
