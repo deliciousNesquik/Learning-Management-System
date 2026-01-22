@@ -81,7 +81,7 @@
 
 
 @* МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ *@
-@if (_showModal && _canInsert)
+@if (_showAddModal && _canInsert)
 {
     <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px);" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -255,21 +255,22 @@
     ErrorMessage="@_errorMessage"/>
 
 <UserPermissionsModal 
-    Show="_showPermsModal"
+    Show="_showPermissionModal"
     UserLogin="@_selectedObjectTitle"
     Permissions="@_listAvailablePermissions"
-    OnClose="() => _showPermsModal = false"
+    OnClose="() => _showPermissionModal = false"
     OnSave="SavePermissions"
     IsProcessing="_isProcessing" />
 
 <style>
     .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
     @@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .custom-input-group:focus-within { box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15); border-radius: 0.375rem; }
-    .text-monospace { font-family: 'SFMono-Regular', Consolas, monospace; letter-spacing: 1px; }
 </style>
 
 @code {
+    [SupplyParameterFromQuery(Name = "Search")]
+    public string? Search { get; set; }
+    
     private TableQuery _query = new();
     private PagedResult<AdminListItemVm> _page = new();
     private List<TableColumn<AdminListItemVm>> _columns = [];
@@ -281,7 +282,14 @@
     // Флаги состояния и прав
     private bool _isLoaded;
     private bool _canRead, _canInsert, _canUpdate, _canDelete;
-    private bool _isSaved, _isProcessing, _showModal, _showEditModal, _showResetModal, _showDeleteModal, _showPermsModal;
+    private bool _isSaved, _isProcessing;
+    
+    // Контекст для страницы чтобы было понятие какое модельное окно показать.
+    private bool _showAddModal, 
+        _showEditModal, 
+        _showResetModal, 
+        _showDeleteModal, 
+        _showPermissionModal;
     
     private string? _errorMessage, _plainPassword, _selectedObjectTitle;
     private Guid? _selectedObjectUuid;
@@ -302,29 +310,26 @@
             if (_canRead)
             {
                 DefineTableColumns();
-                await LoadData(_query);
                 await LoadStats();
-            }
-        }
+                
+                if (Search != null)
+                    _query.Search = Search;
         
-        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("search", out var searchValue))
-        {
-            _query.Search = searchValue;
-            await LoadData(_query);
+                await LoadData(_query);
+            }
         }
         
         _isLoaded = true;
     }
 
-    private TableColumn<AdminListItemVm> CreateDataColumn(string title, System.Func<AdminListItemVm,object?> value, bool sortable, string sortKey)
+    private TableColumn<AdminListItemVm> CreateDataColumn(string title, Func<AdminListItemVm,object?> value, bool sortable, string sortKey)
     {
-        return new TableColumn<AdminListItemVm>()
+        return new TableColumn<AdminListItemVm>
         {
             Title = title,
             Value = value,
             Sortable = sortable,
-            SortKey = sortKey,
+            SortKey = sortKey
         };
     }
     
@@ -338,7 +343,7 @@
             CreateDataColumn("Фамилия", a => a.Surname, false, "surname"),
             CreateDataColumn("Имя", a => a.Name, false, "name"),
             CreateDataColumn("Отчество", a => a.Patronymic, false, "patronymic"),
-            CreateDataColumn("Дата создания", a => a.CreatedAt.ToString("dd.MM.yyyy HH:mm"), true, "created_at"),
+            CreateDataColumn("Дата создания", a => a.CreatedAt.ToString("dd.MM.yyyy HH:mm"), true, "created_at")
         ];
         
         if (_canUpdate || _canDelete)
@@ -390,7 +395,7 @@
         _createModel = new CreateAdminVm(); 
         _errorMessage = null; 
         _isSaved = false; 
-        _showModal = true;
+        _showAddModal = true;
     }
     
     private async Task HandleCreate()
@@ -477,9 +482,25 @@
         finally { _isProcessing = false; }
     }
 
-    private void GeneratePassword() => _createModel.PlainPassword = UsersDataGenerator.GeneratePassword();
-    private void GenerateLogin() => _createModel.Login = UsersDataGenerator.GenerateLogin("admin_");
+    private void GeneratePassword()
+    {
+        if (_createModel == null)
+        {
+            _errorMessage = "Произошла ошибка! Пожалуйста перезагрузите страницу!";
+            return;
+        }
+        _createModel.PlainPassword = UsersDataGenerator.GeneratePassword();
+    }
 
+    private void GenerateLogin()
+    {
+        if (_createModel == null)
+        {
+            _errorMessage = "Произошла ошибка! Пожалуйста перезагрузите страницу!";
+            return;
+        }
+        _createModel.Login = UsersDataGenerator.GenerateLogin("admin_");
+    }
     
     private void OpenResetPassword(AdminListItemVm admin)
     {
@@ -495,11 +516,8 @@
         _isSaved = false; 
         _showResetModal = true;
     }
-    
-    private void CancelReset()
-    {
-        _showResetModal = false;
-    }
+
+    private void CancelReset() => _showResetModal = false;
 
     private async Task HandleResetPassword()
     {
@@ -597,7 +615,7 @@
                 if (_selectedObjectUuid != null)
                 {
                     _listAvailablePermissions = await UserPermissions.GetPermissionsAsync((Guid)_selectedObjectUuid, true);
-                    _showPermsModal = true;
+                    _showPermissionModal = true;
                 }
                 else
                 {
@@ -622,7 +640,7 @@
         }
         _isProcessing = true;
         await UserPermissions.UpdatePermissionsAsync((Guid)_selectedObjectUuid, perms);
-        _showPermsModal = false;
+        _showPermissionModal = false;
         _isProcessing = false;
     }
 
@@ -634,7 +652,7 @@
 
     private void CloseAddModal()
     {
-        _showModal = false;
+        _showAddModal = false;
         _isSaved = false;
     }
 }
