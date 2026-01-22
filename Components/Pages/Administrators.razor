@@ -301,7 +301,6 @@
         var userId = UserSessionAccessor.UserUuid;
         if (userId.HasValue)
         {
-            // Загружаем права асинхронно
             _canRead = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Select);
             _canUpdate = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Update);
             _canInsert = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Insert);

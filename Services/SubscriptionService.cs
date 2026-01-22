@@ -24,8 +24,8 @@ public class SubscriptionService(IDbContextFactory<DatabaseContext> dbFactory) :
             q = q.Where(s => 
                 s.Uuid.ToString().Contains(query.Search) ||
                 s.Name.Contains(query.Search) ||
-                s.BranchUuid.ToString().Contains(query.Search) ||
-                s.Branch.Name.ToString().Contains(query.Search)
+                s.BranchUuid.ToString().Contains(query.Search) 
+                //|| s.Branch.Name.ToString().Contains(query.Search)
                 );
         }
 

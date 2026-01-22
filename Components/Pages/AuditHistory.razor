@@ -83,8 +83,23 @@
             new TableColumn<AuditHistoryListItemVm> { Title = "Имя таблицы", Value = a => a.TableName, Sortable = true, SortKey = "table_name" },
             
             // TODO: Сделать поддержку перехода по идентификатору записи.
-            new TableColumn<AuditHistoryListItemVm> { Title = "UUID записи", Value = a => a.RecordUuid.ToString(), Sortable = true, SortKey = "record_uuid" },
-            
+            //new TableColumn<AuditHistoryListItemVm> { Title = "UUID записи", Value = a => a.RecordUuid.ToString(), Sortable = true, SortKey = "record_uuid" },
+            new TableColumn<AuditHistoryListItemVm> 
+            { 
+                Title = "Запись", 
+                Value = a => a.RecordUuid.ToString(),
+                Sortable = false, 
+                SortKey = "record_uuid",
+                Template = (item) => (builder) => 
+                {
+                    var url = $"/{item.TableName}?search={item.RecordUuid}";
+                    builder.OpenElement(0, "a");
+                    builder.AddAttribute(1, "href", url);
+                    builder.AddAttribute(2, "class", "badge bg-primary text-decoration-none me-1");
+                    builder.AddContent(3, item.RecordUuid.ToString());
+                    builder.CloseElement();
+                }
+            },
             new TableColumn<AuditHistoryListItemVm> { Title = "Действие", Value = a => a.Action.ToString(), Sortable = true, SortKey = "action" },
             new TableColumn<AuditHistoryListItemVm> { Title = "Старые данные", Value = a => a.OldData != null ? a.OldData.RootElement.ToString() : string.Empty, Sortable = false, SortKey = "old_data" },
             new TableColumn<AuditHistoryListItemVm> { Title = "Новые данные", Value = a => a.NewData != null ? a.NewData.RootElement.ToString() : string.Empty, Sortable = false, SortKey = "new_data" },
