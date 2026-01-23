@@ -116,31 +116,32 @@
                 _filterTemplates.Add(builder =>
                 {
                     builder.OpenElement(0, "div");
-                    builder.AddContent(1, "Категория:");
-                    builder.OpenElement(2, "select");
-                    builder.AddAttribute(3, "class", "form-select form-select-sm mt-1");
-                    builder.AddAttribute(4, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, 
-                        e => HandleCategoryFilter(e.Value?.ToString())));
-                    
-                    builder.OpenElement(5, "option");
-                    builder.AddAttribute(6, "value", "");
-                    builder.AddContent(7, "Все категории");
-                    builder.CloseElement();
-                    
+                    builder.AddAttribute(1, "class", "category-filter-list");
+                    builder.AddContent(2, "Выберите категории:");
+    
                     foreach (var category in categories)
                     {
-                        builder.OpenElement(8, "option");
-                        builder.AddAttribute(9, "value", category);
-                        if (_query.Filters.TryGetValue("category", out var selectedCategory) && 
-                            selectedCategory?.ToString() == category)
-                        {
-                            builder.AddAttribute(10, "selected", "selected");
-                        }
-                        builder.AddContent(11, category);
+                        var isChecked = _query.Filters.TryGetValue("category", out var val) 
+                                        && val is List<string> list && list.Contains(category);
+
+                        builder.OpenElement(3, "div");
+                        builder.AddAttribute(4, "class", "form-check mt-2");
+        
+                        builder.OpenElement(5, "input");
+                        builder.AddAttribute(6, "type", "checkbox");
+                        builder.AddAttribute(7, "class", "form-check-input");
+                        builder.AddAttribute(8, "checked", isChecked);
+                        builder.AddAttribute(9, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, 
+                            e => HandleCategoryToggle(category, (bool)e.Value!)));
+                        builder.CloseElement();
+
+                        builder.OpenElement(10, "label");
+                        builder.AddAttribute(11, "class", "form-check-label small");
+                        builder.AddContent(12, category);
+                        builder.CloseElement();
+        
                         builder.CloseElement();
                     }
-                    
-                    builder.CloseElement();
                     builder.CloseElement();
                 });
             }
@@ -156,6 +157,33 @@
         {
             _availableCourses = await SubscriptionService.GetAllAvailableCourses((Guid)UserSessionAccessor.ActiveBranchUuid);
         }
+    }
+    
+    private void HandleCategoryToggle(string category, bool isChecked)
+    {
+        // Получаем текущий список из фильтров или создаем новый
+        if (!_query.Filters.TryGetValue("category", out var currentObj) || currentObj is not List<string> selectedCategories)
+        {
+            selectedCategories = new List<string>();
+        }
+
+        if (isChecked)
+        {
+            if (!selectedCategories.Contains(category)) selectedCategories.Add(category);
+        }
+        else
+        {
+            selectedCategories.Remove(category);
+        }
+
+        // Если список пуст — удаляем фильтр совсем
+        if (selectedCategories.Any())
+            _query.Filters["category"] = selectedCategories;
+        else
+            _query.Filters.Remove("category");
+
+        _query.Page = 1;
+        _ = HandleQueryChanged(_query); // вызовется автоматически, если вы передадите это в OnQueryChanged
     }
 
     private async Task HandleQueryChanged(TableQuery newQuery)
