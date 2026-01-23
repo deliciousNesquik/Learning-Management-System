@@ -25,6 +25,7 @@ builder.Services.AddScoped<IBranchService, BranchService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IAuditHistoryService, AuditHistoryService>();
 builder.Services.AddScoped<IDirectorService, DirectorService>();
+builder.Services.AddScoped<IStorageService, LocalStorageService>();
 
 builder.Services.AddScoped<IUserSecurityService, UserSecurityService>();
 

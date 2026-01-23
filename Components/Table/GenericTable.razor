@@ -1,6 +1,8 @@
 @inject IJSRuntime JSRuntime
+@inject IStorageService Storage
 
 @using System.Text.Json
+@using LMS.Interfaces
 @typeparam TItem
 
 <div class="card shadow-sm">
@@ -165,7 +167,7 @@
     
     private bool _showColumnModal;
     private HashSet<string> _visibleColumnKeys = [];
-    //private bool _isFirstRender = true;
+    private TableState _state = new();
     
     // Вычисляем общее количество страниц
     private int TotalPages => (int)Math.Ceiling((double)Data.TotalCount / Query.PageSize);
@@ -174,24 +176,33 @@
     {
         if (firstRender && !string.IsNullOrEmpty(StorageKey))
         {
-            // Загружаем сохраненные колонки из localStorage
-            var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"{StorageKey}_visibleColumns");
-            if (!string.IsNullOrEmpty(json))
+            var savedState = await Storage.GetItemAsync<TableState>($"{StorageKey}_settings");
+            
+            if (savedState != null)
             {
-                var savedKeys = JsonSerializer.Deserialize<List<string>>(json);
-                if (savedKeys != null && savedKeys.Any())
-                {
-                    _visibleColumnKeys = savedKeys.ToHashSet();
-                    StateHasChanged(); // Перерисовываем с новыми колонками
-                }
+                _state = savedState;
+                
+                Query.PageSize = _state.PageSize;
+                Query.Page = _state.CurrentPage;
+                
+                if (_state.VisibleColumns.Any())
+                    _visibleColumnKeys = _state.VisibleColumns.ToHashSet();
             }
             else
             {
-                // Если в хранилище ничего нет, показываем всё по умолчанию
                 _visibleColumnKeys = Columns.Select(c => c.SortKey ?? c.Title).ToHashSet();
-                StateHasChanged();
             }
+
+            StateHasChanged();
         }
+    }
+    
+    private async Task SaveStateAsync(Action<TableState> updateAction)
+    {
+        updateAction(_state);
+        
+        if (!string.IsNullOrEmpty(StorageKey))
+            await Storage.SetItemAsync($"{StorageKey}_settings", _state);
     }
 
     private async Task ToggleColumn(string key, object? isChecked)
@@ -202,20 +213,14 @@
             else if (_visibleColumnKeys.Count > 1) _visibleColumnKeys.Remove(key);
 
             // Сохраняем новое состояние при каждом изменении
-            if (!string.IsNullOrEmpty(StorageKey))
-            {
-                var json = JsonSerializer.Serialize(_visibleColumnKeys);
-                await JSRuntime.InvokeVoidAsync("localStorage.setItem", $"{StorageKey}_visibleColumns", json);
-            }
+            await SaveStateAsync(s => s.VisibleColumns = _visibleColumnKeys.ToList());
         }
     }
     
     private void OpenColumnSettings() => _showColumnModal = true;
     
-    private async Task ExportToCsv()
-    {
-        
-    }
+    //TODO: Подумать позже как можно вынести в отельный сервис чтобы не писать для каждого компонента.
+    private Task ExportToCsv() { return Task.CompletedTask; }
 
     private async Task OnSearchChanged(ChangeEventArgs e)
     {
@@ -226,8 +231,14 @@
 
     private async Task OnPageSizeChanged(ChangeEventArgs e)
     {
-        Query.PageSize = int.Parse(e.Value!.ToString()!);
+        var newSize = int.Parse(e.Value!.ToString()!);
+    
+        // Обновляем запрос
+        Query.PageSize = newSize;
         Query.Page = 1;
+        
+        await SaveStateAsync(s => s.PageSize = newSize);
+
         await OnQueryChanged.InvokeAsync(Query);
     }
 
@@ -253,6 +264,7 @@
         if (page >= 1 && page <= TotalPages)
         {
             Query.Page = page;
+            await SaveStateAsync(s => s.CurrentPage = page);
             await OnQueryChanged.InvokeAsync(Query);
         }
     }

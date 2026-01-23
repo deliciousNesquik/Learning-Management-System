@@ -12,12 +12,12 @@
                        value="@Query.Search"
                        @oninput="OnSearchChanged" />
                 
-                @*@if (FilterTemplates.Any())
+                @if (FilterTemplates.Any())
                 {
                     <div class="dropdown">
-                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
-                                type="button" 
-                                id="filterDropdown" 
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                type="button"
+                                id="filterDropdown"
                                 data-bs-toggle="dropdown">
                             Фильтры
                         </button>
@@ -31,10 +31,10 @@
                                 </li>
                             }
                         </ul>
-                    </div>*@
-                    
+                    </div>
+                }
                 <!-- Активные фильтры -->
-                @if (Query.Filters.Any())
+                @*@if (Query.Filters.Any())
                 {
                     <div class="d-flex flex-wrap gap-2 mb-2">
                         @foreach (var filter in Query.Filters)
@@ -52,7 +52,7 @@
                             <i class="bi bi-x-circle me-1"></i> Сбросить все
                         </button>
                     </div>
-                }
+                }*@
                     
                     
                     <div class="dropdown">
