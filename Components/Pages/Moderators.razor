@@ -379,7 +379,7 @@
                 Title = "Филиалы",
                 Value = a => a.BranchesNames,
                 Sortable = false,
-                SortKey = "organization_name",
+                SortKey = "branches_name",
                 Template = (item) => (builder) =>
                 {
                     if (item.BranchesUuids == null || item.BranchesUuids.Count == 0) return;

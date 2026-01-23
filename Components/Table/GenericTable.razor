@@ -185,8 +185,7 @@
                 Query.PageSize = _state.PageSize;
                 Query.Page = _state.CurrentPage;
                 
-                if (_state.VisibleColumns.Any())
-                    _visibleColumnKeys = _state.VisibleColumns.ToHashSet();
+                _visibleColumnKeys = _state.VisibleColumns.Any() ? _state.VisibleColumns.ToHashSet() : Columns.Select(c => c.SortKey ?? c.Title).ToHashSet();
             }
             else
             {
