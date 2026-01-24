@@ -110,7 +110,8 @@
                 await LoadCourses();
                 
                 // Добавляем фильтр по категориям
-                var categories = _allCourses?.Select(c => c.CategoryName).Distinct().ToList() ?? new();
+                var categories = _allCourses?.Select(c => c.CategoryName).Distinct().ToList() ?? [];
+                var authors = _allCourses?.Select(c => c.AuthorName).Distinct().ToList() ?? [];
                 
                 
                 _filterTemplates.Add(builder =>
@@ -138,6 +139,38 @@
                         builder.OpenElement(10, "label");
                         builder.AddAttribute(11, "class", "form-check-label small");
                         builder.AddContent(12, category);
+                        builder.CloseElement();
+        
+                        builder.CloseElement();
+                    }
+                    builder.CloseElement();
+                });
+                
+                _filterTemplates.Add(builder =>
+                {
+                    builder.OpenElement(0, "div");
+                    builder.AddAttribute(1, "class", "category-filter-list");
+                    builder.AddContent(2, "Выберите автора:");
+    
+                    foreach (var author in authors)
+                    {
+                        var isChecked = _query.Filters.TryGetValue("author", out var val) 
+                                        && val is List<string> list && list.Contains(author);
+
+                        builder.OpenElement(3, "div");
+                        builder.AddAttribute(4, "class", "form-check mt-2");
+        
+                        builder.OpenElement(5, "input");
+                        builder.AddAttribute(6, "type", "checkbox");
+                        builder.AddAttribute(7, "class", "form-check-input");
+                        builder.AddAttribute(8, "checked", isChecked);
+                        builder.AddAttribute(9, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, 
+                            e => HandleAuthorToggle(author, (bool)e.Value!)));
+                        builder.CloseElement();
+
+                        builder.OpenElement(10, "label");
+                        builder.AddAttribute(11, "class", "form-check-label small");
+                        builder.AddContent(12, author);
                         builder.CloseElement();
         
                         builder.CloseElement();
@@ -181,6 +214,33 @@
             _query.Filters["category"] = selectedCategories;
         else
             _query.Filters.Remove("category");
+
+        _query.Page = 1;
+        _ = HandleQueryChanged(_query); // вызовется автоматически, если вы передадите это в OnQueryChanged
+    }
+    
+    private void HandleAuthorToggle(string author, bool isChecked)
+    {
+        // Получаем текущий список из фильтров или создаем новый
+        if (!_query.Filters.TryGetValue("author", out var currentObj) || currentObj is not List<string> selectedAuthors)
+        {
+            selectedAuthors = new List<string>();
+        }
+
+        if (isChecked)
+        {
+            if (!selectedAuthors.Contains(author)) selectedAuthors.Add(author);
+        }
+        else
+        {
+            selectedAuthors.Remove(author);
+        }
+
+        // Если список пуст — удаляем фильтр совсем
+        if (selectedAuthors.Any())
+            _query.Filters["author"] = selectedAuthors;
+        else
+            _query.Filters.Remove("author");
 
         _query.Page = 1;
         _ = HandleQueryChanged(_query); // вызовется автоматически, если вы передадите это в OnQueryChanged
