@@ -1,5 +1,5 @@
 using LMS.Data.Models;
-using LMS.ViewModels.CourseViewModel;
+using LMS.DTOs.Course;
 
 namespace LMS.Interfaces;
 

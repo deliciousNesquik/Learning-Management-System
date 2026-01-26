@@ -1,7 +1,8 @@
 using LMS.Data;
 using LMS.Data.Models;
+using LMS.DTOs;
+using LMS.DTOs.General;
 using LMS.Models;
-using LMS.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Services;

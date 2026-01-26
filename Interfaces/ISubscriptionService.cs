@@ -1,6 +1,6 @@
 using LMS.Components.Table;
+using LMS.DTOs.Subscription;
 using LMS.Models.UserManipulationResult;
-using LMS.ViewModels.SubscriptionViewModel;
 
 namespace LMS.Interfaces;
 

@@ -1,9 +1,9 @@
 using LMS.Components.Table;
 using LMS.Data;
 using LMS.Data.Models;
+using LMS.DTOs.Moderator;
 using LMS.Interfaces;
 using LMS.Models.UserManipulationResult;
-using LMS.ViewModels.ModeratorViewModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

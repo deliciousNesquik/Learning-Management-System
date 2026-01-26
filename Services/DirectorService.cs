@@ -1,9 +1,9 @@
 using LMS.Components.Table;
 using LMS.Data;
 using LMS.Data.Models;
+using LMS.DTOs.Director;
 using LMS.Interfaces;
 using LMS.Models.UserManipulationResult;
-using LMS.ViewModels.DirectorViewModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Services;

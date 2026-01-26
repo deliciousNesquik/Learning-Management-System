@@ -1,6 +1,6 @@
 using LMS.Components.Table;
+using LMS.DTOs.Branch;
 using LMS.Models.UserManipulationResult;
-using LMS.ViewModels.BranchViewModel;
 
 namespace LMS.Interfaces;
 

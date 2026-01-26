@@ -1,6 +1,6 @@
 using LMS.Components.Table;
+using LMS.DTOs.Admin;
 using LMS.Models.UserManipulationResult;
-using LMS.ViewModels.AdminViewModel;
 
 namespace LMS.Interfaces;
 

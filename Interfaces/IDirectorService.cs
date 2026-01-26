@@ -1,4 +1,4 @@
-using LMS.ViewModels.DirectorViewModel;
+using LMS.DTOs.Director;
 
 namespace LMS.Interfaces;
 

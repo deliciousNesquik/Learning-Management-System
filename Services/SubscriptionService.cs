@@ -1,9 +1,9 @@
 using LMS.Components.Table;
 using LMS.Data;
 using LMS.Data.Models;
+using LMS.DTOs.Subscription;
 using LMS.Interfaces;
 using LMS.Models.UserManipulationResult;
-using LMS.ViewModels.SubscriptionViewModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Services;

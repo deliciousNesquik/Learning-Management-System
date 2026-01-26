@@ -1,10 +1,9 @@
 using LMS.Components.Table;
 using LMS.Data;
 using LMS.Data.Models;
+using LMS.DTOs.Organization;
 using LMS.Interfaces;
 using LMS.Models.UserManipulationResult;
-using LMS.ViewModels.BranchViewModel;
-using LMS.ViewModels.OrganizationViewModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Services;

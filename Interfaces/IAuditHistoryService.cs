@@ -1,5 +1,5 @@
 using LMS.Components.Table;
-using LMS.ViewModels.AuditHistoryViewModel;
+using LMS.DTOs.AuditHistory;
 
 namespace LMS.Interfaces;
 

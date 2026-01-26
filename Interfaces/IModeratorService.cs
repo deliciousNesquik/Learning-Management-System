@@ -1,6 +1,6 @@
 using LMS.Components.Table;
+using LMS.DTOs.Moderator;
 using LMS.Models.UserManipulationResult;
-using LMS.ViewModels.ModeratorViewModel;
 
 namespace LMS.Interfaces;
 

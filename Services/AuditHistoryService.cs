@@ -1,7 +1,7 @@
 using LMS.Components.Table;
 using LMS.Data;
+using LMS.DTOs.AuditHistory;
 using LMS.Interfaces;
-using LMS.ViewModels.AuditHistoryViewModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Services;
