@@ -15,16 +15,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <ImportMap/>
     <HeadOutlet/>
+    <title>СДО</title>
 </head>
 
 <body>
-@* Оборачиваем в каскадное состояние *@
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Program).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
-                    @* Если нет доступа — на логин *@
                     <RedirectToLogin />
                 </NotAuthorized>
             </AuthorizeRouteView>
@@ -40,16 +39,7 @@
 
 <script src="_framework/blazor.web.js"></script>
 <script>
-    window.downloadFile = (fileName, contentType, content) => {
-        const blob = new Blob([content], { type: contentType });
-        const url = URL.createObjectURL(blob);
-        const anchorElement = document.createElement('a');
-        anchorElement.href = url;
-        anchorElement.download = fileName ?? '';
-        anchorElement.click();
-        anchorElement.remove();
-        URL.revokeObjectURL(url);
-    }
+
 </script>
 </body>
 

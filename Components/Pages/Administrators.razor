@@ -1,19 +1,19 @@
 @page "/administrators"
+<PageTitle>Администраторы</PageTitle>
+
 @using LMS.Components.Shared
 @using LMS.Components.Table
-@using LMS.DTOs
 @using LMS.DTOs.Admin
 @using LMS.DTOs.General
 @using LMS.Infrastructure.Security
 @using LMS.Interfaces
-@using LMS.Models
 @using LMS.Models.Database
 @using LMS.Services
 @using Microsoft.AspNetCore.Authorization
 @inject IAdminService AdminService
 @inject UserPermissions UserPermissions
 @inject UserSessionAccessor UserSessionAccessor
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 @rendermode InteractiveServer
 
 @attribute [Authorize(Roles = "Admin")]
@@ -645,7 +645,7 @@
 
     private async Task CopyToClipboard(string text)
     {
-        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
     }
 
 

@@ -3,17 +3,15 @@
 @using LMS.DTOs.Branch
 @using LMS.DTOs.Director
 @using LMS.Interfaces
-@using LMS.Models
 @using LMS.Models.Database
 @using LMS.Services
 @using Microsoft.AspNetCore.Authorization
 
 @page "/directors"
+<PageTitle>Директора</PageTitle>
 @rendermode InteractiveServer
 @inject UserSessionAccessor UserSessionAccessor
-@inject IOrganizationService OrganizationService
 @inject NavigationManager NavigationManager
-@inject UserPermissions UserPermissions
 @inject IDirectorService DirectorService
 @inject IBranchService BranchService
 
