@@ -1,6 +1,6 @@
-using LMS.Components.Table;
 using LMS.Data;
 using LMS.DTOs.AuditHistory;
+using LMS.DTOs.TableView;
 using LMS.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

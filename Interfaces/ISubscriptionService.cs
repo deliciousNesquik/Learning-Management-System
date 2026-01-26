@@ -1,5 +1,5 @@
-using LMS.Components.Table;
 using LMS.DTOs.Subscription;
+using LMS.DTOs.TableView;
 using LMS.Models.UserManipulationResult;
 
 namespace LMS.Interfaces;

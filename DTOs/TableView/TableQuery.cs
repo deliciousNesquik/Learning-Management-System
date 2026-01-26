@@ -1,4 +1,4 @@
-namespace LMS.Components.Table;
+namespace LMS.DTOs.TableView;
 
 /// <summary>
 /// Описывает, что пользователь сейчас хочет видеть.

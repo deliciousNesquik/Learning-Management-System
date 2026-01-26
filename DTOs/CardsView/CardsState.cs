@@ -1,4 +1,4 @@
-namespace LMS.Components.CardsView;
+namespace LMS.DTOs.CardsView;
 
 public class CardsState
 {

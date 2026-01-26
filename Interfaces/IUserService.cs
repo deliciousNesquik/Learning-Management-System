@@ -1,4 +1,4 @@
-using LMS.Components.Table;
+using LMS.DTOs.TableView;
 using LMS.Models.UserManipulationResult;
 
 namespace LMS.Interfaces;
