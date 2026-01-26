@@ -6,21 +6,21 @@ public sealed class ResetUserPasswordResult
     public Guid? UserUuid { get; }
     public string? ErrorCode { get; }
 
-    private ResetUserPasswordResult(bool success, Guid? userUuid, string? errorCode)
+    private ResetUserPasswordResult(bool success, Guid? uuid, string? errorCode)
     {
         IsSuccess = success;
-        UserUuid = userUuid;
+        UserUuid = uuid;
         ErrorCode = errorCode;
     }
 
-    public static ResetUserPasswordResult Success(Guid? userUuid)
-        => new(true, userUuid, null);
+    public static ResetUserPasswordResult Success(Guid? uuid)
+        => new(true, uuid, null);
 
     public static ResetUserPasswordResult UserNotFound(Guid uuid)
-        => new(false, uuid, "USER UUID NOT FOUND");
+        => new(false, uuid, $"Пользователь с {uuid} не существует");
     
-    public static ResetUserPasswordResult UserInactive(Guid? userUuid)
-        => new(false, userUuid, "USER_INACTIVE");
+    public static ResetUserPasswordResult UserInactive(Guid? uuid)
+        => new(false, uuid, $"Пользователь с {uuid} не активный");
     
     public static ResetUserPasswordResult UnknownError(Guid uuid, string errorCode)
         => new(false, uuid, errorCode);

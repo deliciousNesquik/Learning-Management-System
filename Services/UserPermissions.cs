@@ -3,6 +3,7 @@ using LMS.Data.Entities;
 using LMS.DTOs;
 using LMS.DTOs.General;
 using LMS.Models;
+using LMS.Models.Database;
 using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Services;

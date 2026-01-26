@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using LMS.Components;
 using LMS.Models;
+using LMS.Models.Database;
 
 namespace LMS.Services;
 

@@ -6,10 +6,10 @@ public sealed class CreateUserResult
     public Guid? UserUuid { get; }
     public string? ErrorCode { get; }
 
-    private CreateUserResult(bool isSuccess, Guid? userUuid, string? errorCode)
+    private CreateUserResult(bool isSuccess, Guid? uuid, string? errorCode)
     {
         IsSuccess = isSuccess;
-        UserUuid = userUuid;
+        UserUuid = uuid;
         ErrorCode = errorCode;
     }
 

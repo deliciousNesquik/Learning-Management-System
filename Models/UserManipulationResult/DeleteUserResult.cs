@@ -6,10 +6,10 @@ public class DeleteUserResult
     public Guid? UserUuid { get; }
     public string? ErrorCode { get; }
 
-    private DeleteUserResult(bool isSuccess, Guid? userUuid, string? errorCode)
+    private DeleteUserResult(bool isSuccess, Guid? uuid, string? errorCode)
     {
         IsSuccess = isSuccess;
-        UserUuid = userUuid;
+        UserUuid = uuid;
         ErrorCode = errorCode;
     }
 
@@ -17,7 +17,7 @@ public class DeleteUserResult
         => new(true, uuid, null);
 
     public static DeleteUserResult UserNotFound(Guid uuid)
-        => new(false, uuid, "USER UUID NOT FOUND");
+        => new(false, uuid, $"Пользователь с {uuid} не существует");
     
     public static DeleteUserResult UnknownError(Guid uuid, string errorCode)
         => new(false, uuid, errorCode);

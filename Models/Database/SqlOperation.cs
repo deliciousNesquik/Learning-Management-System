@@ -1,4 +1,4 @@
-namespace LMS.Models;
+namespace LMS.Models.Database;
 
 public enum SqlOperation
 {
