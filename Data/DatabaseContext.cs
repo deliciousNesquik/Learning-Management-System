@@ -1,4 +1,5 @@
-using LMS.Data.Models;
+using LMS.Data.Configuration;
+using LMS.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Data;

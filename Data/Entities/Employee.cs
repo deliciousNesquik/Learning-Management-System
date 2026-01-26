@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using LMS.Data.Models;
 
-namespace LMS.Data.Models;
+namespace LMS.Data.Entities;
 [Table("employees", Schema = "public")]
 public class Employee
 {

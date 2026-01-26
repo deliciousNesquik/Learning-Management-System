@@ -1,6 +1,7 @@
 using LMS.Components;
 using LMS.Data;
-using LMS.Data.Models;
+using LMS.Data.Configuration;
+using LMS.Data.Entities;
 using LMS.Interfaces;
 using LMS.Services;
 using Microsoft.AspNetCore.Identity;

@@ -1,8 +1,7 @@
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace LMS.Data.Models;
+namespace LMS.Data.Entities;
 
 [Table("branches_directors", Schema = "public")]
 [PrimaryKey(nameof(BranchUuid), nameof(DirectorsUuid))]

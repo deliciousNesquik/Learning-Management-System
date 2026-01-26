@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using LMS.Data;
-using LMS.Data.Models;
+using LMS.Data.Entities;
 using LMS.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;

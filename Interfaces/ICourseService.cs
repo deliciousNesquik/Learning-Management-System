@@ -1,4 +1,4 @@
-using LMS.Data.Models;
+using LMS.Data.Entities;
 using LMS.DTOs.Course;
 
 namespace LMS.Interfaces;

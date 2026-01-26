@@ -1,5 +1,5 @@
 using LMS.Data;
-using LMS.Data.Models;
+using LMS.Data.Entities;
 using LMS.DTOs.Course;
 using LMS.Interfaces;
 using Microsoft.EntityFrameworkCore;

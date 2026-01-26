@@ -1,6 +1,6 @@
 using LMS.Components.Table;
 using LMS.Data;
-using LMS.Data.Models;
+using LMS.Data.Entities;
 using LMS.DTOs.Branch;
 using LMS.Interfaces;
 using LMS.Models.UserManipulationResult;

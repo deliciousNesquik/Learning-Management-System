@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using NpgsqlTypes;
 
-namespace LMS.Data.Models;
+namespace LMS.Data.Entities;
 
 [Table("administrators", Schema = "public")]
 public class Administrator

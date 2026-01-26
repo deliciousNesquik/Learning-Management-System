@@ -1,5 +1,5 @@
 using LMS.Data;
-using LMS.Data.Models;
+using LMS.Data.Entities;
 using LMS.DTOs;
 using LMS.DTOs.General;
 using LMS.Models;

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace LMS.Data.Models;
+namespace LMS.Data.Entities;
 
 [Table("assessments", Schema = "public")]
 public class Assessment

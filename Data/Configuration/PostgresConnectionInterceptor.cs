@@ -2,7 +2,7 @@ using System.Data.Common;
 using LMS.Services;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace LMS.Data;
+namespace LMS.Data.Configuration;
 
 public class PostgresConnectionInterceptor(UserSessionAccessor sessionAccessor) : DbConnectionInterceptor
 {

@@ -1,24 +1,24 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace LMS.Data.Models;
+namespace LMS.Data.Entities;
 
-[Table("assessments_courses_list", Schema = "public")]
-public class AssessmentCourse
+[Table("materials_courses_list", Schema = "public")]
+public class MaterialCourse
 {
     [Key]
     [Column("uuid")]
     public Guid Uuid { get; set; } = Guid.NewGuid();
         
     [Required]
-    [Column("assessment_uuid")]
-    public Guid AssessmentUuid { get; set; }
+    [Column("material_uuid")]
+    public Guid MaterialUuid { get; set; }
         
     [Required]
     [Column("course_uuid")]
     public Guid CourseUuid { get; set; }
         
     // Навигационные свойства
-    public Assessment Assessment { get; set; } = null!;
+    public Material Material { get; set; } = null!;
     public Course Course { get; set; } = null!;
 }
