@@ -1,14 +1,44 @@
+using Amazon.S3;
+using DotNetEnv;
 using LMS.Components;
 using LMS.Data;
 using LMS.Data.Configuration;
 using LMS.Data.Entities;
+using LMS.DTOs.Storage;
 using LMS.Interfaces;
 using LMS.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Options;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Env.Load();
+builder.Configuration.AddEnvironmentVariables();
+
+builder.Services.Configure<S3Options>(options =>
+{
+    options.AccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY") ?? "";
+    options.SecretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY") ?? "";
+    options.ServiceUrl = Environment.GetEnvironmentVariable("AWS_SERVICE_URL") ?? "";
+    options.BucketName = Environment.GetEnvironmentVariable("AWS_BUCKET_NAME") ?? "";
+    options.Region = Environment.GetEnvironmentVariable("AWS_REGION") ?? "";
+});
+
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<S3Options>>().Value;
+    return new AmazonS3Client(options.AccessKey, options.SecretKey, new AmazonS3Config
+    {
+        ServiceURL = options.ServiceUrl,
+        ForcePathStyle = true
+    });
+});
+
+
+
 
 // Настройка драйвера для игнорирования строгой проверки временных типов данных.
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -18,6 +48,8 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddCascadingAuthenticationState(); 
 
 // Добавление сервисов приложения.
+builder.Services.AddScoped<IFileStorageService, S3StorageService>();
+
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IModeratorService, ModeratorService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
@@ -84,8 +116,9 @@ app.UseAntiforgery();
 app.MapControllers(); 
 app.MapStaticAssets();
 
-// Настройка страниц.
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapScalarApiReference();
 
 app.Run();

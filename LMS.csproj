@@ -5,7 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-      <UserSecretsId>358e2574-6ab6-45dd-851a-eb64d49b99c1</UserSecretsId>
+    <UserSecretsId>bd215bac-a2df-4acf-8571-3ad7f6a75b4a</UserSecretsId>
   </PropertyGroup>
 
     <ItemGroup>
@@ -15,8 +15,13 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.0-preview" />
+      <PackageReference Include="AWSSDK.S3" Version="4.0.0-preview" />
+      <PackageReference Include="DotNetEnv" Version="3.1.1" />
+      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
+        <PackageReference Include="Scalar.AspNetCore" Version="2.0.25" />
     </ItemGroup>
 
 </Project>
