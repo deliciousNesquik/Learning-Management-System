@@ -1,5 +1,6 @@
 using LMS.Data;
 using LMS.Data.Entities;
+using LMS.DTOs.CardsView;
 using LMS.DTOs.Course;
 using LMS.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,9 @@ namespace LMS.Services;
 
 public class CourseService(IDbContextFactory<DatabaseContext> dbFactory) : ICourseService
 {
-    public async Task<List<CourseListItemVm>> GetCoursesForCardsAsync()
+    
+    // TODO: Переписать метод чтобы использовался DTO CardQyery.
+    public async Task<List<CourseListItemVm>> GetCoursesForCardsAsync(CardQuery query)
     {
         await using var context = await dbFactory.CreateDbContextAsync();
         return await context.Courses

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace LMS.Components.Table;
+namespace LMS.DTOs.TableView;
 
 /// <summary>
 /// Описывает одну колонку таблицы.

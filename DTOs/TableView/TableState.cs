@@ -1,4 +1,4 @@
-namespace LMS.Components.Table;
+namespace LMS.DTOs.TableView;
 
 public class TableState
 {

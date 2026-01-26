@@ -2,6 +2,7 @@ using LMS.Components.Table;
 using LMS.Data;
 using LMS.Data.Entities;
 using LMS.DTOs.Subscription;
+using LMS.DTOs.TableView;
 using LMS.Interfaces;
 using LMS.Models.UserManipulationResult;
 using Microsoft.EntityFrameworkCore;

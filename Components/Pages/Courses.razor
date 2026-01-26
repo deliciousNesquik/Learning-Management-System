@@ -1,8 +1,7 @@
 @page "/courses"
 <PageTitle>Курсы</PageTitle>
-@using LMS.Components.CardsView
 @using LMS.Components.Shared
-@using LMS.Components.Table
+@using LMS.DTOs.CardsView
 @using LMS.Services
 @using LMS.DTOs.Course
 @using LMS.Interfaces
@@ -23,7 +22,7 @@
             }
         </div>
 
-        <CardsGrid TItem="CourseListItemVm"
+        <CardsView TItem="CourseListItemVm"
                          Items="_courses"
                          TotalCount="TotalCount"
                          Query="_query"
@@ -69,7 +68,7 @@
                     }
                 </div>
             </CardTemplate>
-        </CardsGrid>
+        </CardsView>
     </div>
 </AccessControl>
 
@@ -80,7 +79,7 @@
     private List<CourseListItemVm>? _courses;
     private List<Guid>? _availableCourses;
     private int TotalCount { get; set; }
-    private TableQuery _query = new();
+    private CardQuery _query = new();
     private Dictionary<string, string> _sortOptions = new()
     {
         { "name", "По названию" },
@@ -184,7 +183,7 @@
 
     private async Task LoadCourses()
     {
-        _allCourses = await CourseService.GetCoursesForCardsAsync();
+        _allCourses = await CourseService.GetCoursesForCardsAsync(_query);
         _courses = new List<CourseListItemVm>(_allCourses); // Копируем для фильтрации
         if (UserSessionAccessor.UserRole == "Moderator" && UserSessionAccessor.ActiveBranchUuid.HasValue)
         {
@@ -246,7 +245,7 @@
         _ = HandleQueryChanged(_query); // вызовется автоматически, если вы передадите это в OnQueryChanged
     }
 
-    private async Task HandleQueryChanged(TableQuery newQuery)
+    private async Task HandleQueryChanged(CardQuery newQuery)
     {
         _query = newQuery;
         

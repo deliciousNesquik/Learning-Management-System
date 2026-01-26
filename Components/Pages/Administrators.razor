@@ -2,9 +2,9 @@
 <PageTitle>Администраторы</PageTitle>
 
 @using LMS.Components.Shared
-@using LMS.Components.Table
 @using LMS.DTOs.Admin
 @using LMS.DTOs.General
+@using LMS.DTOs.TableView
 @using LMS.Infrastructure.Security
 @using LMS.Interfaces
 @using LMS.Models.Database
@@ -67,7 +67,7 @@
 
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <GenericTable TItem="AdminListItemVm"
+                    <TableView TItem="AdminListItemVm"
                                   StorageKey="Administrators"
                                   Data="_page"
                                   Columns="_columns"

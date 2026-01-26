@@ -1,6 +1,6 @@
 @using System.Collections
 @using System.Threading
-@using LMS.Components.Table
+@using LMS.DTOs.CardsView
 @using LMS.Interfaces
 @typeparam TItem
 @inject IStorageService Storage
@@ -259,8 +259,8 @@
 @code {
     [Parameter][EditorRequired] public List<TItem>? Items { get; set; }
     [Parameter][EditorRequired] public int TotalCount { get; set; }
-    [Parameter][EditorRequired] public TableQuery Query { get; set; } = new();
-    [Parameter][EditorRequired] public EventCallback<TableQuery> OnQueryChanged { get; set; }
+    [Parameter][EditorRequired] public CardQuery Query { get; set; } = new();
+    [Parameter][EditorRequired] public EventCallback<CardQuery> OnQueryChanged { get; set; }
     [Parameter] public RenderFragment<TItem> CardTemplate { get; set; } = default!;
     [Parameter] public List<RenderFragment> FilterTemplates { get; set; } = [];
     [Parameter] public Dictionary<string, string> SortOptions { get; set; } = [];

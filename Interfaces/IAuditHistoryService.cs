@@ -1,5 +1,6 @@
 using LMS.Components.Table;
 using LMS.DTOs.AuditHistory;
+using LMS.DTOs.TableView;
 
 namespace LMS.Interfaces;
 
