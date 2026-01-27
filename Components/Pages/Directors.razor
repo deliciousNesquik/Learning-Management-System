@@ -10,7 +10,7 @@
 @page "/directors"
 <PageTitle>Директора</PageTitle>
 @rendermode InteractiveServer
-@inject UserSessionAccessor UserSessionAccessor
+@inject UserRequestContext UserRequestContext
 @inject NavigationManager NavigationManager
 @inject IDirectorService DirectorService
 @inject IBranchService BranchService
@@ -243,13 +243,13 @@
     
     protected override async Task OnInitializedAsync()
     {
-        var userId = UserSessionAccessor.UserUuid;
+        var userId = UserRequestContext.UserUuid;
         if (userId.HasValue)
         {
-            canRead = await UserSessionAccessor.HasPermission(DbSchemaConstants.Directors, SqlOperation.Select);
-            canInsert = await UserSessionAccessor.HasPermission(DbSchemaConstants.Directors, SqlOperation.Insert);
-            canUpdate = await UserSessionAccessor.HasPermission(DbSchemaConstants.Directors, SqlOperation.Update);
-            canDelete = await UserSessionAccessor.HasPermission(DbSchemaConstants.Directors, SqlOperation.Delete);
+            canRead = await UserRequestContext.HasPermission(DbSchemaConstants.Directors, SqlOperation.Select);
+            canInsert = await UserRequestContext.HasPermission(DbSchemaConstants.Directors, SqlOperation.Insert);
+            canUpdate = await UserRequestContext.HasPermission(DbSchemaConstants.Directors, SqlOperation.Update);
+            canDelete = await UserRequestContext.HasPermission(DbSchemaConstants.Directors, SqlOperation.Delete);
         }
 
         if (canRead)

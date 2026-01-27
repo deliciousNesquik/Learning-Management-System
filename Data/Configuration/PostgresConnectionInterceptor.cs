@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace LMS.Data.Configuration;
 
-public class PostgresConnectionInterceptor(UserSessionAccessor sessionAccessor) : DbConnectionInterceptor
+public class PostgresConnectionInterceptor(UserRequestContext requestContext) : DbConnectionInterceptor
 {
     // Используем синхронный метод для стабильности
     public override void ConnectionOpened(DbConnection connection, ConnectionEndEventData eventData)
     {
-        var userId = sessionAccessor.UserUuid;
+        var userId = requestContext.UserUuid;
         if (userId.HasValue)
         {
             using var command = connection.CreateCommand();
@@ -22,7 +22,7 @@ public class PostgresConnectionInterceptor(UserSessionAccessor sessionAccessor) 
     // И асинхронный тоже, для полноты картины
     public override async Task ConnectionOpenedAsync(DbConnection connection, ConnectionEndEventData eventData, CancellationToken cancellationToken = default)
     {
-        var userId = sessionAccessor.UserUuid;
+        var userId = requestContext.UserUuid;
         if (userId.HasValue)
         {
             await using var command = connection.CreateCommand();

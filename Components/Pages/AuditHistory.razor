@@ -6,7 +6,7 @@
 @using LMS.Services
 @using Microsoft.AspNetCore.Authorization
 
-@inject UserSessionAccessor UserSessionAccessor
+@inject UserRequestContext UserRequestContext
 @inject NavigationManager NavigationManager
 @inject IAuditHistoryService AuditHistoryService
 
@@ -54,10 +54,10 @@
     
     protected override async Task OnInitializedAsync()
     {
-        var userId = UserSessionAccessor.UserUuid;
+        var userId = UserRequestContext.UserUuid;
         if (userId.HasValue)
         {
-            _canRead = await UserSessionAccessor.HasPermission(DbSchemaConstants.AuditHistory, SqlOperation.Select);
+            _canRead = await UserRequestContext.HasPermission(DbSchemaConstants.AuditHistory, SqlOperation.Select);
 
             if (_canRead)
             {

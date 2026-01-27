@@ -4,7 +4,7 @@
 @using LMS.Services
 @using Microsoft.AspNetCore.Components.Authorization
 @inherits LayoutComponentBase
-@inject UserSessionAccessor UserSessionAccessor
+@inject UserRequestContext UserRequestContext
 
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
@@ -179,28 +179,28 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userId = UserSessionAccessor.UserUuid;
+        var userId = UserRequestContext.UserUuid;
         if (userId.HasValue)
         {
-            _canReadAdministrators = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Select);
-            _canReadOrganizations = await UserSessionAccessor.HasPermission(DbSchemaConstants.Organizations, SqlOperation.Select);
-            _canReadBranches = await UserSessionAccessor.HasPermission(DbSchemaConstants.Branches, SqlOperation.Select);
-            _canReadSubscriptions = await UserSessionAccessor.HasPermission(DbSchemaConstants.Subscriptions, SqlOperation.Select);
-            _canReadDirectors = await UserSessionAccessor.HasPermission(DbSchemaConstants.Directors, SqlOperation.Select);
-            _canReadModerators = await UserSessionAccessor.HasPermission(DbSchemaConstants.Moderators, SqlOperation.Select);
-            _canReadAuditHistory = await UserSessionAccessor.HasPermission(DbSchemaConstants.AuditHistory, SqlOperation.Select);
+            _canReadAdministrators = await UserRequestContext.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Select);
+            _canReadOrganizations = await UserRequestContext.HasPermission(DbSchemaConstants.Organizations, SqlOperation.Select);
+            _canReadBranches = await UserRequestContext.HasPermission(DbSchemaConstants.Branches, SqlOperation.Select);
+            _canReadSubscriptions = await UserRequestContext.HasPermission(DbSchemaConstants.Subscriptions, SqlOperation.Select);
+            _canReadDirectors = await UserRequestContext.HasPermission(DbSchemaConstants.Directors, SqlOperation.Select);
+            _canReadModerators = await UserRequestContext.HasPermission(DbSchemaConstants.Moderators, SqlOperation.Select);
+            _canReadAuditHistory = await UserRequestContext.HasPermission(DbSchemaConstants.AuditHistory, SqlOperation.Select);
             
-            _canReadCourses = await UserSessionAccessor.HasPermission(DbSchemaConstants.Courses, SqlOperation.Select);
-            _canReadMaterials = await UserSessionAccessor.HasPermission(DbSchemaConstants.Materials, SqlOperation.Select);
-            _canReadAssessments = await UserSessionAccessor.HasPermission(DbSchemaConstants.Assessments, SqlOperation.Select);
+            _canReadCourses = await UserRequestContext.HasPermission(DbSchemaConstants.Courses, SqlOperation.Select);
+            _canReadMaterials = await UserRequestContext.HasPermission(DbSchemaConstants.Materials, SqlOperation.Select);
+            _canReadAssessments = await UserRequestContext.HasPermission(DbSchemaConstants.Assessments, SqlOperation.Select);
             
-            _canReadCoursesAssignments = await UserSessionAccessor.HasPermission(DbSchemaConstants.CoursesAssignments, SqlOperation.Select);
-            _canReadCoursesEnrollments = await UserSessionAccessor.HasPermission(DbSchemaConstants.CoursesEnrollments, SqlOperation.Select);
-            _canReadAssessmentsAttempts = await UserSessionAccessor.HasPermission(DbSchemaConstants.AssessmentsAttempts, SqlOperation.Select);
+            _canReadCoursesAssignments = await UserRequestContext.HasPermission(DbSchemaConstants.CoursesAssignments, SqlOperation.Select);
+            _canReadCoursesEnrollments = await UserRequestContext.HasPermission(DbSchemaConstants.CoursesEnrollments, SqlOperation.Select);
+            _canReadAssessmentsAttempts = await UserRequestContext.HasPermission(DbSchemaConstants.AssessmentsAttempts, SqlOperation.Select);
             
-            _canReadEmployees = await UserSessionAccessor.HasPermission(DbSchemaConstants.Employees, SqlOperation.Select);
-            _canReadEmployeesGroups = await UserSessionAccessor.HasPermission(DbSchemaConstants.EmployeesGroups, SqlOperation.Select);
-            _canReadGroupMembership = await UserSessionAccessor.HasPermission(DbSchemaConstants.GroupMemberships, SqlOperation.Select);
+            _canReadEmployees = await UserRequestContext.HasPermission(DbSchemaConstants.Employees, SqlOperation.Select);
+            _canReadEmployeesGroups = await UserRequestContext.HasPermission(DbSchemaConstants.EmployeesGroups, SqlOperation.Select);
+            _canReadGroupMembership = await UserRequestContext.HasPermission(DbSchemaConstants.GroupMemberships, SqlOperation.Select);
         }
     }
 

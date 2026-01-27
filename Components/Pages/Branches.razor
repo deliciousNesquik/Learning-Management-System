@@ -9,7 +9,7 @@
 @using LMS.Services
 @using Microsoft.AspNetCore.Authorization
 @rendermode InteractiveServer
-@inject UserSessionAccessor UserSessionAccessor
+@inject UserRequestContext UserRequestContext
 @inject IBranchService BranchService
 @inject IOrganizationService OrganizationService
 @inject NavigationManager NavigationManager
@@ -275,13 +275,13 @@
     
     protected override async Task OnInitializedAsync()
     {
-        var userId = UserSessionAccessor.UserUuid;
+        var userId = UserRequestContext.UserUuid;
         if (userId.HasValue)
         {
-            _canRead = await UserSessionAccessor.HasPermission(DbSchemaConstants.Branches, SqlOperation.Select);
-            _canInsert = await UserSessionAccessor.HasPermission(DbSchemaConstants.Branches, SqlOperation.Insert);
-            _canUpdate = await UserSessionAccessor.HasPermission(DbSchemaConstants.Branches, SqlOperation.Update);
-            _canDelete = await UserSessionAccessor.HasPermission(DbSchemaConstants.Branches, SqlOperation.Delete);
+            _canRead = await UserRequestContext.HasPermission(DbSchemaConstants.Branches, SqlOperation.Select);
+            _canInsert = await UserRequestContext.HasPermission(DbSchemaConstants.Branches, SqlOperation.Insert);
+            _canUpdate = await UserRequestContext.HasPermission(DbSchemaConstants.Branches, SqlOperation.Update);
+            _canDelete = await UserRequestContext.HasPermission(DbSchemaConstants.Branches, SqlOperation.Delete);
         }
 
         if (_canRead)

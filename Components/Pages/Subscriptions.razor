@@ -9,7 +9,7 @@
 @using LMS.Models.Database
 @using LMS.Services
 @using Microsoft.AspNetCore.Authorization
-@inject UserSessionAccessor UserSessionAccessor
+@inject UserRequestContext UserRequestContext
 @inject ISubscriptionService SubscriptionService
 @inject IBranchService BranchService
 @inject NavigationManager NavigationManager
@@ -265,13 +265,13 @@
     
     protected override async Task OnInitializedAsync()
     {
-        var userId = UserSessionAccessor.UserUuid;
+        var userId = UserRequestContext.UserUuid;
         if (userId.HasValue)
         {
-            canRead = await UserSessionAccessor.HasPermission(DbSchemaConstants.Subscriptions, SqlOperation.Select);
-            canInsert = await UserSessionAccessor.HasPermission(DbSchemaConstants.Subscriptions, SqlOperation.Insert);
-            canUpdate = await UserSessionAccessor.HasPermission(DbSchemaConstants.Subscriptions, SqlOperation.Update);
-            canDelete = await UserSessionAccessor.HasPermission(DbSchemaConstants.Subscriptions, SqlOperation.Delete);
+            canRead = await UserRequestContext.HasPermission(DbSchemaConstants.Subscriptions, SqlOperation.Select);
+            canInsert = await UserRequestContext.HasPermission(DbSchemaConstants.Subscriptions, SqlOperation.Insert);
+            canUpdate = await UserRequestContext.HasPermission(DbSchemaConstants.Subscriptions, SqlOperation.Update);
+            canDelete = await UserRequestContext.HasPermission(DbSchemaConstants.Subscriptions, SqlOperation.Delete);
         }
 
         if (canRead)

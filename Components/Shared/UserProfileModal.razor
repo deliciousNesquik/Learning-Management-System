@@ -1,6 +1,6 @@
 @using LMS.Services
 @using Microsoft.AspNetCore.Components.Authorization
-@inject UserSessionAccessor UserSessionAccessor
+@inject UserRequestContext UserRequestContext
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
@@ -21,12 +21,12 @@
                 @onclick:stopPropagation="true">
 
                 <li class="px-3 py-2">
-                    <div class="fw-bold fs-5">@UserSessionAccessor.UserSurname @UserSessionAccessor.UserName @UserSessionAccessor.UserPatronymic</div>
+                    <div class="fw-bold fs-5">@UserRequestContext.UserSurname @UserRequestContext.UserName @UserRequestContext.UserPatronymic</div>
                     
                     <div class="uuid-wrapper mt-1" @onclick="CopyUuidToClipboard" title="Нажмите, чтобы скопировать">
                         
                         <small class="text-muted text-break fw-light cursor-pointer">
-                            @UserSessionAccessor.UserUuid?.ToString()
+                            @UserRequestContext.UserUuid?.ToString()
                         </small>
 
                         <div class="copy-status @(_showCopyMessage ? "visible" : "")">
@@ -113,7 +113,7 @@
     
     private async Task CopyUuidToClipboard()
     {
-        var uuid = UserSessionAccessor.UserUuid?.ToString();
+        var uuid = UserRequestContext.UserUuid?.ToString();
         if (string.IsNullOrEmpty(uuid)) return;
 
         // Используем стандартное браузерное API через JS

@@ -64,7 +64,7 @@ builder.Services.AddScoped<IUserSecurityService, UserSecurityService>();
 
 // Добавление сервисов для авторизации в приложении.
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<UserSessionAccessor>();
+builder.Services.AddScoped<UserRequestContext>();
 builder.Services.AddScoped<UserPermissions, UserPermissions>();
 builder.Services.AddScoped<PostgresConnectionInterceptor>();
 

@@ -12,7 +12,7 @@
 @using Microsoft.AspNetCore.Authorization
 @inject IAdminService AdminService
 @inject UserPermissions UserPermissions
-@inject UserSessionAccessor UserSessionAccessor
+@inject UserRequestContext UserRequestContext
 @inject IJSRuntime JsRuntime
 @rendermode InteractiveServer
 
@@ -298,13 +298,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userId = UserSessionAccessor.UserUuid;
+        var userId = UserRequestContext.UserUuid;
         if (userId.HasValue)
         {
-            _canRead = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Select);
-            _canUpdate = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Update);
-            _canInsert = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Insert);
-            _canDelete = await UserSessionAccessor.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Delete);
+            _canRead = await UserRequestContext.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Select);
+            _canUpdate = await UserRequestContext.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Update);
+            _canInsert = await UserRequestContext.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Insert);
+            _canDelete = await UserRequestContext.HasPermission(DbSchemaConstants.Administrators, SqlOperation.Delete);
 
             if (_canRead)
             {

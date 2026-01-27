@@ -5,7 +5,7 @@ using LMS.Models.Database;
 
 namespace LMS.Services;
 
-public class UserSessionAccessor(IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
+public class UserRequestContext(IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
 {
     // Кеш прав в рамках текущего Scoped-сервиса
     private Dictionary<string, HashSet<SqlOperation>>? _permissionsCache = null;

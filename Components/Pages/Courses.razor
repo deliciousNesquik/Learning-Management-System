@@ -7,7 +7,7 @@
 @using LMS.Interfaces
 @using LMS.Models.Database
 @rendermode InteractiveServer
-@inject UserSessionAccessor UserSessionAccessor
+@inject UserRequestContext UserRequestContext
 @inject ISubscriptionService SubscriptionService
 @inject ICourseService CourseService
 @inject NavigationManager NavigationManager
@@ -97,12 +97,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (UserSessionAccessor.UserUuid.HasValue)
+        if (UserRequestContext.UserUuid.HasValue)
         {
-            _canRead = await UserSessionAccessor.HasPermission(DbSchemaConstants.Courses, SqlOperation.Select);
-            _canUpdate = await UserSessionAccessor.HasPermission(DbSchemaConstants.Courses, SqlOperation.Update);
-            _canInsert = await UserSessionAccessor.HasPermission(DbSchemaConstants.Courses, SqlOperation.Insert);
-            _canDelete = await UserSessionAccessor.HasPermission(DbSchemaConstants.Courses, SqlOperation.Delete);
+            _canRead = await UserRequestContext.HasPermission(DbSchemaConstants.Courses, SqlOperation.Select);
+            _canUpdate = await UserRequestContext.HasPermission(DbSchemaConstants.Courses, SqlOperation.Update);
+            _canInsert = await UserRequestContext.HasPermission(DbSchemaConstants.Courses, SqlOperation.Insert);
+            _canDelete = await UserRequestContext.HasPermission(DbSchemaConstants.Courses, SqlOperation.Delete);
 
             if (_canRead)
             {
@@ -185,9 +185,9 @@
     {
         _allCourses = await CourseService.GetCoursesForCardsAsync(_query);
         _courses = new List<CourseListItemVm>(_allCourses); // Копируем для фильтрации
-        if (UserSessionAccessor.UserRole == "Moderator" && UserSessionAccessor.ActiveBranchUuid.HasValue)
+        if (UserRequestContext.UserRole == "Moderator" && UserRequestContext.ActiveBranchUuid.HasValue)
         {
-            _availableCourses = await SubscriptionService.GetAllAvailableCourses((Guid)UserSessionAccessor.ActiveBranchUuid);
+            _availableCourses = await SubscriptionService.GetAllAvailableCourses((Guid)UserRequestContext.ActiveBranchUuid);
         }
     }
     
