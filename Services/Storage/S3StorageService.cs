@@ -4,7 +4,7 @@ using LMS.Interfaces;
 using LMS.DTOs.Storage;
 using Microsoft.Extensions.Options;
 
-namespace LMS.Services;
+namespace LMS.Services.Storage;
 
 public class S3StorageService : IFileStorageService
 {

@@ -2,7 +2,7 @@ using System.Text.Json;
 using LMS.Interfaces;
 using Microsoft.JSInterop;
 
-namespace LMS.Services;
+namespace LMS.Services.Storage;
 
 public class LocalStorageService (IJSRuntime jsRuntime) : IStorageService
 {

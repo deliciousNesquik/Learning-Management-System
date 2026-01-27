@@ -7,6 +7,7 @@ using LMS.Data.Entities;
 using LMS.DTOs.Storage;
 using LMS.Interfaces;
 using LMS.Services;
+using LMS.Services.Storage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
