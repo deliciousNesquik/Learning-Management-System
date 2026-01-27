@@ -24,7 +24,7 @@ public class AuthService(
             adminHasher.VerifyHashedPassword(administrator, administrator.Password.Trim(), password.Trim()) !=
             PasswordVerificationResult.Failed)
             return new AuthModel(
-                CreatePrincipal(administrator.Uuid, administrator.Login, "Admin", administrator.Surname,
+                CreatePrincipal(administrator.Uuid, administrator.Login, "Administrator", administrator.Surname,
                     administrator.Name, administrator.Patronymic), "");
 
         // 2. Модератор
