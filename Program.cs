@@ -71,8 +71,11 @@ builder.Services.AddScoped<PostgresConnectionInterceptor>();
 
 builder.Services.AddDbContextFactory<DatabaseContext>((sp, options) =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection"), 
+    options.UseNpgsql(Environment.GetEnvironmentVariable("CONNECTION_STRING") ?? "", 
         o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
+    
+    /*options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection"), 
+        o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));*/
     
     var interceptor = sp.GetRequiredService<PostgresConnectionInterceptor>();
     options.AddInterceptors(interceptor);

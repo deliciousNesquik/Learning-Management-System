@@ -1,14 +1,14 @@
 using System.Security.Claims;
-using LMS.Components;
-using LMS.Models;
 using LMS.Models.Database;
 
 namespace LMS.Services;
 
 public class UserRequestContext(IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
 {
+    // TODO: Пересмотреть использование serviceProvider и возможно заменить на Lazy<UserPermissions>
+    
     // Кеш прав в рамках текущего Scoped-сервиса
-    private Dictionary<string, HashSet<SqlOperation>>? _permissionsCache = null;
+    private Dictionary<string, HashSet<SqlOperation>>? _permissionsCache;
     
     public Guid? UserUuid
     {
