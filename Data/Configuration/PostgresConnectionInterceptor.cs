@@ -13,7 +13,7 @@ public class PostgresConnectionInterceptor(UserRequestContext requestContext) : 
         if (userId.HasValue)
         {
             using var command = connection.CreateCommand();
-            command.CommandText = $"SET app.current_user_id = '{userId}';";
+            command.CommandText = $"SET LOCAL app.current_user_id = '{userId}';";
             command.ExecuteNonQuery();
         }
         base.ConnectionOpened(connection, eventData);
@@ -26,7 +26,7 @@ public class PostgresConnectionInterceptor(UserRequestContext requestContext) : 
         if (userId.HasValue)
         {
             await using var command = connection.CreateCommand();
-            command.CommandText = $"SET app.current_user_id = '{userId}';";
+            command.CommandText = $"SET LOCAL app.current_user_id = '{userId}';";
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
         await base.ConnectionOpenedAsync(connection, eventData, cancellationToken);
