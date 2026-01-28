@@ -5,6 +5,7 @@
 @using LMS.Services
 @using LMS.Models
 @using LMS.Models.UserManipulationResult
+@using Microsoft.AspNetCore.Authorization
 @inject UserRequestContext Accessor
 @inject IUserSecurityService UserSecurityService
 @inject IAdminService AdminService
@@ -12,6 +13,8 @@
 @inject IJSRuntime JS
 
 @rendermode InteractiveServer
+
+@attribute [Authorize(Roles = "Administrator, Moderator, Employee")]
 
 <div class="container-fluid px-3">
     <div class="row justify-content-center">

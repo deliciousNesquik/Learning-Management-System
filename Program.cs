@@ -123,6 +123,4 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.MapScalarApiReference();
-
 app.Run();

@@ -15,7 +15,7 @@
 @inject IDirectorService DirectorService
 @inject IBranchService BranchService
 
-@attribute [Authorize(Roles = "Admin")]
+@attribute [Authorize(Roles = "Administrator")]
 
 <AccessControl IsLoaded="_isLoaded" CanRead="canRead" PageName="Директора">
     <div class="container-fluid px-4 mt-3 animate-fade-in">
