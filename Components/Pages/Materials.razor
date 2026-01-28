@@ -2,6 +2,7 @@
 <PageTitle>Библиотека материалов</PageTitle>
 
 @using LMS.Components.Shared
+@using LMS.Components.Shared.CardsView
 @using LMS.DTOs.CardsView
 @using LMS.Services
 @using LMS.DTOs.Material
@@ -36,8 +37,12 @@
                    IsLoading="!_isLoaded"
                    StorageKey="MaterialsGrid"
                    SortOptions="_sortOptions"
-                   FilterTemplates="_filterTemplates"
                    FilterDisplayNames="_filterDisplayNames">
+            
+            <FilterTemplates>
+                
+            </FilterTemplates>
+            
             <CardTemplate>
                 <div class="card h-100 shadow-sm border-0 material-card">
                     <div class="card-body">

@@ -171,10 +171,11 @@
                     <div class="col-md-7 ps-md-4">
                         <label class="form-label small fw-bold text-muted text-uppercase mb-3">Фильтры</label>
                         <div class="d-flex flex-column gap-3">
-                            @foreach (var template in FilterTemplates)
+                            
+                            @if (FilterTemplates != null)
                             {
-                                <div class="filter-item p-2 border rounded bg-light">
-                                    @template
+                                <div class="filters-panel mb-3">
+                                    @FilterTemplates
                                 </div>
                             }
                         </div>
@@ -262,7 +263,8 @@
     [Parameter][EditorRequired] public CardQuery Query { get; set; } = new();
     [Parameter][EditorRequired] public EventCallback<CardQuery> OnQueryChanged { get; set; }
     [Parameter] public RenderFragment<TItem> CardTemplate { get; set; } = default!;
-    [Parameter] public List<RenderFragment> FilterTemplates { get; set; } = [];
+    
+    [Parameter] public RenderFragment? FilterTemplates { get; set; }
     [Parameter] public Dictionary<string, string> SortOptions { get; set; } = [];
     [Parameter] public Dictionary<string, string> FilterDisplayNames { get; set; } = [];
     [Parameter] public string StorageKey { get; set; } = "";

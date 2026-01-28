@@ -1,6 +1,7 @@
 @page "/courses"
 <PageTitle>Курсы</PageTitle>
 @using LMS.Components.Shared
+@using LMS.Components.Shared.CardsView
 @using LMS.DTOs.CardsView
 @using LMS.Services
 @using LMS.DTOs.Course
@@ -24,20 +25,39 @@
         </div>
 
         <CardsView TItem="CourseListItemVm"
-                         Data="_page"
-                         Query="_query"
-                         OnQueryChanged="HandleQueryChanged"
-                         IsLoading="!_isLoaded"
-                         StorageKey="Courses"
-                         SortOptions="_sortOptions"
-                         FilterTemplates="_filterTemplates"
-                         FilterDisplayNames="_filterDisplayNames">
+                   Data="_page"
+                   Query="_query"
+                   OnQueryChanged="HandleQueryChanged"
+                   IsLoading="!_isLoaded"
+                   StorageKey="Courses"
+                   SortOptions="_sortOptions"
+                   FilterDisplayNames="_filterDisplayNames">
+            
+            <FilterTemplates>
+                <div class="filter-item p-2 border rounded bg-light">
+                    <MultiSelectFilter Title="Категория"
+                                       FilterKey="category"
+                                       Options="_categories"
+                                       Query="_query"
+                                       OnChanged="HandleQueryChanged" />
+                </div>
+
+                <div class="filter-item p-2 border rounded bg-light">
+                    <MultiSelectFilter Title="Автор"
+                                       FilterKey="author"
+                                       Options="_authors"
+                                       Query="_query"
+                                       OnChanged="HandleQueryChanged" />
+                </div>
+            </FilterTemplates>
+            
             <CardTemplate>
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
-                        <span class="badge mb-2 me-2" style="background-color: @context.CategoryColor">@context.CategoryName</span>
-                        
-                        @if(_availableCourses != null && _availableCourses.Contains(context.Uuid))
+                        <span class="badge mb-2 me-2"
+                              style="background-color: @context.CategoryColor">@context.CategoryName</span>
+
+                        @if (_availableCourses != null && _availableCourses.Contains(context.Uuid))
                         {
                             <span class="badge bg-success mb-2">Доступен в подписке!</span>
                         }
@@ -46,14 +66,16 @@
                     </div>
                     <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
                         <small class="text-muted"><i class="bi bi-person"></i> Загрузил: @context.AuthorName</small>
-                        <button class="btn btn-sm btn-outline-primary" @onclick="() => NavigateToCourse(context.Uuid)">Подробнее</button>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => NavigateToCourse(context.Uuid)">
+                            Подробнее
+                        </button>
                     </div>
-                    
+
                     @if (context.UpdatedAt.HasValue)
                     {
                         <div class="card-footer">
                             <small class="text-muted">
-                                <i class="bi bi-pencil-square"></i> 
+                                <i class="bi bi-pencil-square"></i>
                                 Последнее изменение: @context.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")
                             </small>
                         </div>
@@ -72,262 +94,85 @@
     </div>
 </AccessControl>
 
+
 @code {
-    private bool _canRead, _canInsert, _canUpdate, _canDelete;
+    private bool _canRead;
+    private bool _canInsert;
     private bool _isLoaded;
+    private bool _isLoading;
+
+    private List<string> _categories = [];
+    private List<string> _authors = [];
+
     private PagedResult<CourseListItemVm> _page = new();
-    private List<CourseListItemVm>? _allCourses;
-    private List<CourseListItemVm>? _courses;
     private List<Guid>? _availableCourses;
-    private int TotalCount { get; set; }
-    private CardQuery _query = new();
-    private Dictionary<string, string> _sortOptions = new()
+
+    private CardQuery _query = new()
+    {
+        Page = 1,
+        PageSize = 9
+    };
+
+    private readonly Dictionary<string, string> _sortOptions = new()
     {
         { "name", "По названию" },
-        { "createdAt", "По дате создания" },
+        { "create_date", "По дате создания" },
         { "category", "По категории" }
     };
-    private List<RenderFragment> _filterTemplates = new();
-    private Dictionary<string, string> _filterDisplayNames = new()
+
+    private readonly Dictionary<string, string> _filterDisplayNames = new()
     {
         { "category", "Категория" },
         { "author", "Автор" },
-        { "subscription", "Доступен в подписке" },
-        { "date_range", "Период" }
+        { "subscription", "В подписке" }
     };
 
     protected override async Task OnInitializedAsync()
     {
-        if (UserRequestContext.UserUuid.HasValue)
+        if (!UserRequestContext.UserUuid.HasValue)
+            return;
+
+        _canRead = await UserRequestContext.HasPermission(
+            DbSchemaConstants.Courses, SqlOperation.Select);
+
+        _canInsert = await UserRequestContext.HasPermission(
+            DbSchemaConstants.Courses, SqlOperation.Insert);
+
+        if (_canRead)
         {
-            _canRead = await UserRequestContext.HasPermission(DbSchemaConstants.Courses, SqlOperation.Select);
-            _canUpdate = await UserRequestContext.HasPermission(DbSchemaConstants.Courses, SqlOperation.Update);
-            _canInsert = await UserRequestContext.HasPermission(DbSchemaConstants.Courses, SqlOperation.Insert);
-            _canDelete = await UserRequestContext.HasPermission(DbSchemaConstants.Courses, SqlOperation.Delete);
+            await LoadData();
 
-            if (_canRead)
-            {
-                await LoadCourses();
-                
-                // Добавляем фильтр по категориям
-                var categories = _allCourses?.Select(c => c.CategoryName).Distinct().ToList() ?? [];
-                var authors = _allCourses?.Select(c => c.AuthorName).Distinct().ToList() ?? [];
-                
-                
-                _filterTemplates.Add(builder =>
-                {
-                    builder.OpenElement(0, "div");
-                    builder.AddAttribute(1, "class", "category-filter-list");
-                    builder.AddContent(2, "Выберите категории:");
-    
-                    foreach (var category in categories)
-                    {
-                        var isChecked = _query.Filters.TryGetValue("category", out var val) 
-                                        && val is List<string> list && list.Contains(category);
-
-                        builder.OpenElement(3, "div");
-                        builder.AddAttribute(4, "class", "form-check mt-2");
-        
-                        builder.OpenElement(5, "input");
-                        builder.AddAttribute(6, "type", "checkbox");
-                        builder.AddAttribute(7, "class", "form-check-input");
-                        builder.AddAttribute(8, "checked", isChecked);
-                        builder.AddAttribute(9, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, 
-                            e => HandleCategoryToggle(category, (bool)e.Value!)));
-                        builder.CloseElement();
-
-                        builder.OpenElement(10, "label");
-                        builder.AddAttribute(11, "class", "form-check-label small");
-                        builder.AddContent(12, category);
-                        builder.CloseElement();
-        
-                        builder.CloseElement();
-                    }
-                    builder.CloseElement();
-                });
-                
-                _filterTemplates.Add(builder =>
-                {
-                    builder.OpenElement(0, "div");
-                    builder.AddAttribute(1, "class", "category-filter-list");
-                    builder.AddContent(2, "Выберите автора:");
-    
-                    foreach (var author in authors)
-                    {
-                        var isChecked = _query.Filters.TryGetValue("author", out var val) 
-                                        && val is List<string> list && list.Contains(author);
-
-                        builder.OpenElement(3, "div");
-                        builder.AddAttribute(4, "class", "form-check mt-2");
-        
-                        builder.OpenElement(5, "input");
-                        builder.AddAttribute(6, "type", "checkbox");
-                        builder.AddAttribute(7, "class", "form-check-input");
-                        builder.AddAttribute(8, "checked", isChecked);
-                        builder.AddAttribute(9, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, 
-                            e => HandleAuthorToggle(author, (bool)e.Value!)));
-                        builder.CloseElement();
-
-                        builder.OpenElement(10, "label");
-                        builder.AddAttribute(11, "class", "form-check-label small");
-                        builder.AddContent(12, author);
-                        builder.CloseElement();
-        
-                        builder.CloseElement();
-                    }
-                    builder.CloseElement();
-                });
-            }
+            _categories = _page.Items?.Select(c => c.CategoryName).Distinct().ToList() ?? [];
+            _authors = _page.Items?.Select(c => c.AuthorName).Distinct().ToList() ?? [];
         }
+
         _isLoaded = true;
     }
 
-    private async Task LoadCourses()
+    private async Task LoadData()
     {
+        _isLoading = true;
         _page = await CourseService.GetCoursesForCardsAsync(_query);
-        _allCourses = _page.Items.ToList();
-        _courses = new List<CourseListItemVm>(_allCourses); // Копируем для фильтрации
+        
+        
         if (UserRequestContext.UserRole == "Moderator" && UserRequestContext.ActiveBranchUuid.HasValue)
         {
             _availableCourses = await SubscriptionService.GetAllAvailableCourses((Guid)UserRequestContext.ActiveBranchUuid);
         }
-    }
-    
-    private void HandleCategoryToggle(string category, bool isChecked)
-    {
-        // Получаем текущий список из фильтров или создаем новый
-        if (!_query.Filters.TryGetValue("category", out var currentObj) || currentObj is not List<string> selectedCategories)
-        {
-            selectedCategories = new List<string>();
-        }
-
-        if (isChecked)
-        {
-            if (!selectedCategories.Contains(category)) selectedCategories.Add(category);
-        }
-        else
-        {
-            selectedCategories.Remove(category);
-        }
-
-        // Если список пуст — удаляем фильтр совсем
-        if (selectedCategories.Any())
-            _query.Filters["category"] = selectedCategories;
-        else
-            _query.Filters.Remove("category");
-
-        _query.Page = 1;
-        _ = HandleQueryChanged(_query); // вызовется автоматически, если вы передадите это в OnQueryChanged
-    }
-    
-    private void HandleAuthorToggle(string author, bool isChecked)
-    {
-        // Получаем текущий список из фильтров или создаем новый
-        if (!_query.Filters.TryGetValue("author", out var currentObj) || currentObj is not List<string> selectedAuthors)
-        {
-            selectedAuthors = new List<string>();
-        }
-
-        if (isChecked)
-        {
-            if (!selectedAuthors.Contains(author)) selectedAuthors.Add(author);
-        }
-        else
-        {
-            selectedAuthors.Remove(author);
-        }
-
-        // Если список пуст — удаляем фильтр совсем
-        if (selectedAuthors.Any())
-            _query.Filters["author"] = selectedAuthors;
-        else
-            _query.Filters.Remove("author");
-
-        _query.Page = 1;
-        _ = HandleQueryChanged(_query); // вызовется автоматически, если вы передадите это в OnQueryChanged
-    }
-
-    private async Task HandleQueryChanged(CardQuery newQuery)
-    {
-        _query = newQuery;
         
-        // ВСЕГДА начинаем с исходных данных
-        var filteredCourses = _allCourses?.AsQueryable() ?? Enumerable.Empty<CourseListItemVm>().AsQueryable();
+        _isLoading = false;
+    }
 
-        // 1. ПОИСК по названию и описанию
-        if (!string.IsNullOrEmpty(_query.Search))
-        {
-            var searchLower = _query.Search.ToLower().Trim();
-            filteredCourses = filteredCourses.Where(c => 
-                (!string.IsNullOrEmpty(c.Name) && c.Name.ToLower().Contains(searchLower)) ||
-                (!string.IsNullOrEmpty(c.ShortDescription) && c.ShortDescription.ToLower().Contains(searchLower))
-            );
-        }
-
-        // 2. ФИЛЬТРАЦИЯ по категории
-        if (_query.Filters.TryGetValue("category", out var categoryFilter))
-        {
-            // Обрабатываем разные типы значений фильтра
-            if (categoryFilter is string singleCategory && !string.IsNullOrEmpty(singleCategory))
-            {
-                filteredCourses = filteredCourses.Where(c => 
-                    !string.IsNullOrEmpty(c.CategoryName) && 
-                    c.CategoryName.Equals(singleCategory, StringComparison.OrdinalIgnoreCase));
-            }
-            else if (categoryFilter is List<string> multipleCategories && multipleCategories.Any())
-            {
-                var categoriesLower = multipleCategories.Select(c => c.ToLower()).ToList();
-                filteredCourses = filteredCourses.Where(c => 
-                    !string.IsNullOrEmpty(c.CategoryName) && 
-                    categoriesLower.Contains(c.CategoryName.ToLower()));
-            }
-        }
-
-        // 3. СОРТИРОВКА (применяем к уже отфильтрованным данным)
-        if (!string.IsNullOrEmpty(_query.SortBy))
-        {
-            switch (_query.SortBy.ToLower())
-            {
-                case "name":
-                    filteredCourses = _query.SortDesc 
-                        ? filteredCourses.OrderByDescending(c => c.Name) 
-                        : filteredCourses.OrderBy(c => c.Name);
-                    break;
-                case "createdat":
-                    filteredCourses = _query.SortDesc 
-                        ? filteredCourses.OrderByDescending(c => c.CreatedAt) 
-                        : filteredCourses.OrderBy(c => c.CreatedAt);
-                    break;
-                case "category":
-                    filteredCourses = _query.SortDesc 
-                        ? filteredCourses.OrderByDescending(c => c.CategoryName) 
-                        : filteredCourses.OrderBy(c => c.CategoryName);
-                    break;
-            }
-        }
-
-        // 4. ПРИМЕНЯЕМ пагинацию и сохраняем результат
-        _page = await CourseService.GetCoursesForCardsAsync(_query);
-        
+    private async Task HandleQueryChanged(CardQuery query)
+    {
+        _query = query;
+        await LoadData();
         StateHasChanged();
     }
 
-    private async Task HandleCategoryFilter(string? category)
+    private void NavigateToCourse(Guid uuid)
     {
-        if (string.IsNullOrEmpty(category))
-        {
-            _query.Filters.Remove("category");
-        }
-        else
-        {
-            _query.Filters["category"] = category;
-        }
-        _query.Page = 1;
-        await HandleQueryChanged(_query);
+        NavigationManager.NavigateTo($"/courses/{uuid}");
     }
 
-    private void NavigateToCourse(Guid courseUuid)
-    {
-        NavigationManager.NavigateTo($"/courses/{courseUuid}");
-    }
 }

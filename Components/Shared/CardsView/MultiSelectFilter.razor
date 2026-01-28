@@ -1,0 +1,59 @@
+﻿@using LMS.DTOs.CardsView
+@using Microsoft.Extensions.Options
+<div class="filter-block">
+    <div class="fw-semibold mb-2">@Title</div>
+
+    @foreach (var option in Options)
+    {
+        var isChecked = Selected.Contains(option);
+
+        <div class="form-check mt-1">
+            <input class="form-check-input"
+                   type="checkbox"
+                   checked="@isChecked"
+                   @onchange="e => Toggle(option, (bool)e.Value!)" />
+
+            <label class="form-check-label small">
+                @option
+            </label>
+        </div>
+    }
+</div>
+
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = null!;
+    [Parameter, EditorRequired] public string FilterKey { get; set; } = null!;
+    [Parameter, EditorRequired] public IReadOnlyList<string> Options { get; set; } = [];
+    [Parameter, EditorRequired] public CardQuery Query { get; set; } = null!;
+    [Parameter, EditorRequired] public EventCallback<CardQuery> OnChanged { get; set; }
+
+    private List<string> Selected =>
+        Query.Filters.TryGetValue(FilterKey, out var v) && v is List<string> list
+            ? list
+            : new List<string>();
+
+    private async Task Toggle(string value, bool isChecked)
+    {
+        var selected = Selected.ToList();
+
+        if (isChecked)
+        {
+            if (!selected.Contains(value))
+                selected.Add(value);
+        }
+        else
+        {
+            selected.Remove(value);
+        }
+
+        if (selected.Any())
+            Query.Filters[FilterKey] = selected;
+        else
+            Query.Filters.Remove(FilterKey);
+
+        Query.Page = 1;
+
+        await OnChanged.InvokeAsync(Query);
+    }
+}
