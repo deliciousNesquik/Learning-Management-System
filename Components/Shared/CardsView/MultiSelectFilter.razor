@@ -23,16 +23,23 @@
 
 @code {
     [Parameter, EditorRequired] public string Title { get; set; } = null!;
-    [Parameter, EditorRequired] public string FilterKey { get; set; } = null!;
+    [Parameter, EditorRequired] public string FilterKey { get; set; } = default!;
     [Parameter, EditorRequired] public IReadOnlyList<string> Options { get; set; } = [];
     [Parameter, EditorRequired] public CardQuery Query { get; set; } = null!;
     [Parameter, EditorRequired] public EventCallback<CardQuery> OnChanged { get; set; }
+    
+    [CascadingParameter] public FiltersContext FiltersContext { get; set; } = default!;
 
     private List<string> Selected =>
         Query.Filters.TryGetValue(FilterKey, out var v) && v is List<string> list
             ? list
             : new List<string>();
 
+    protected override void OnInitialized()
+    {
+        FiltersContext.Register(FilterKey);
+    }
+    
     private async Task Toggle(string value, bool isChecked)
     {
         var selected = Selected.ToList();

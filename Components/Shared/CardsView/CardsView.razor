@@ -61,7 +61,7 @@
             @foreach (var filter in Query.Filters)
             {
                 <div class="individual-filter-badge d-flex align-items-center shadow-sm">
-                    <span class="filter-label">@GetFilterDisplayName(filter.Key):</span>
+                    <span class="filter-label">@_filtersContext?.GetDisplayName(filter.Key) ?? filter.Key:</span>
                     <span class="filter-value mx-1">@GetFilterValueDisplay(filter)</span>
                     <button class="btn-remove-filter ms-1" @onclick="() => RemoveFilter(filter.Key)">
                         <i class="bi bi-x"></i>
@@ -175,7 +175,9 @@
                             @if (FilterTemplates != null)
                             {
                                 <div class="filters-panel mb-3">
-                                    @FilterTemplates
+                                    <CascadingValue Value="_filtersContext">
+                                        @FilterTemplates
+                                    </CascadingValue>
                                 </div>
                             }
                         </div>
@@ -266,10 +268,13 @@
     
     [Parameter] public RenderFragment? FilterTemplates { get; set; }
     [Parameter] public Dictionary<string, string> SortOptions { get; set; } = [];
-    [Parameter] public Dictionary<string, string> FilterDisplayNames { get; set; } = [];
+    
     [Parameter] public string StorageKey { get; set; } = "";
     [Parameter] public bool IsLoading { get; set; }
     [Parameter] public List<int> PageSizeOptions { get; set; } = [3, 6, 9, 12, 15];
+    
+    private FiltersContext _filtersContext = default!;
+    public Dictionary<string, string> FilterDisplayNames { get; set; } = [];
 
     private bool _isModalVisible;
     private string _searchText = "";
@@ -297,6 +302,11 @@
                 StateHasChanged();
             }
         }
+    }
+    
+    protected override void OnParametersSet()
+    {
+        _filtersContext = new FiltersContext(FilterDisplayNames);
     }
 
     private async Task HandleSearchInput(ChangeEventArgs e)

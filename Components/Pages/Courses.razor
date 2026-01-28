@@ -30,8 +30,7 @@
                    OnQueryChanged="HandleQueryChanged"
                    IsLoading="!_isLoaded"
                    StorageKey="Courses"
-                   SortOptions="_sortOptions"
-                   FilterDisplayNames="_filterDisplayNames">
+                   SortOptions="_sortOptions">
             
             <FilterTemplates>
                 <div class="filter-item p-2 border rounded bg-light">
@@ -110,7 +109,7 @@
     private CardQuery _query = new()
     {
         Page = 1,
-        PageSize = 9
+        PageSize = 6
     };
 
     private readonly Dictionary<string, string> _sortOptions = new()
@@ -118,13 +117,6 @@
         { "name", "По названию" },
         { "create_date", "По дате создания" },
         { "category", "По категории" }
-    };
-
-    private readonly Dictionary<string, string> _filterDisplayNames = new()
-    {
-        { "category", "Категория" },
-        { "author", "Автор" },
-        { "subscription", "В подписке" }
     };
 
     protected override async Task OnInitializedAsync()
@@ -142,7 +134,7 @@
         {
             await LoadData();
 
-            _categories = _page.Items?.Select(c => c.CategoryName).Distinct().ToList() ?? [];
+            _categories = _page.Items.Select(c => c.CategoryName).Distinct().ToList() ?? [];
             _authors = _page.Items?.Select(c => c.AuthorName).Distinct().ToList() ?? [];
         }
 
