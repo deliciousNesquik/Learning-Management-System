@@ -2,6 +2,7 @@ using LMS.Data;
 using LMS.Data.Entities;
 using LMS.DTOs.CardsView;
 using LMS.DTOs.Course;
+using LMS.DTOs.TableView;
 using LMS.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,17 +10,25 @@ namespace LMS.Services;
 
 public class CourseService(IDbContextFactory<DatabaseContext> dbFactory) : ICourseService
 {
-    
-    // TODO: Переписать метод чтобы использовался DTO CardQyery.
-    public async Task<List<CourseListItemVm>> GetCoursesForCardsAsync(CardQuery query)
+    public async Task<PagedResult<CourseListItemVm>> GetCoursesForCardsAsync(CardQuery query)
     {
-        await using var context = await dbFactory.CreateDbContextAsync();
-        return await context.Courses
+        await using var db = await dbFactory.CreateDbContextAsync();
+        
+        var q = db.Courses
+            .Include(m => m.Category)
+            .Include(m => m.Author)
+            .Include(m => m.Materials)
+            .Include(m => m.Assessments)
+            .ThenInclude(cl => cl.Course)
             .AsNoTracking()
-            .Include(c => c.Category)
-            .Include(c => c.Author)
-            .Include(c => c.Materials)
-            .Include(c => c.Assessments)
+            .AsQueryable();
+        
+        var total = await q.CountAsync();
+        
+        var raw = await q
+            .OrderByDescending(m => m.CreatedAt)
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
             .Select(c => new CourseListItemVm()
             {
                 Uuid = c.Uuid,
@@ -30,7 +39,7 @@ public class CourseService(IDbContextFactory<DatabaseContext> dbFactory) : ICour
                 EstimatedDurationMinutes = c.EstimatedDurationMinutes,
                 Status = c.Status,
                 CreatedAt = c.CreatedAt,
-                UpdatedAt = context.AuditHistories
+                UpdatedAt = db.AuditHistories
                     .Where(a => a.TableName == "COURSES" 
                                 && a.RecordUuid == c.Uuid 
                                 && a.Action == "UPDATE" 
@@ -44,6 +53,12 @@ public class CourseService(IDbContextFactory<DatabaseContext> dbFactory) : ICour
             })
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
+        
+        return new PagedResult<CourseListItemVm>
+        {
+            Items = raw,
+            TotalCount = total,
+        };
     }
 
     public async Task<Course?> GetCourseWithDetailsAsync(Guid courseUuid)

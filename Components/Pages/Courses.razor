@@ -4,6 +4,7 @@
 @using LMS.DTOs.CardsView
 @using LMS.Services
 @using LMS.DTOs.Course
+@using LMS.DTOs.TableView
 @using LMS.Interfaces
 @using LMS.Models.Database
 @rendermode InteractiveServer
@@ -23,8 +24,7 @@
         </div>
 
         <CardsView TItem="CourseListItemVm"
-                         Items="_courses"
-                         TotalCount="TotalCount"
+                         Data="_page"
                          Query="_query"
                          OnQueryChanged="HandleQueryChanged"
                          IsLoading="!_isLoaded"
@@ -75,6 +75,7 @@
 @code {
     private bool _canRead, _canInsert, _canUpdate, _canDelete;
     private bool _isLoaded;
+    private PagedResult<CourseListItemVm> _page = new();
     private List<CourseListItemVm>? _allCourses;
     private List<CourseListItemVm>? _courses;
     private List<Guid>? _availableCourses;
@@ -183,7 +184,8 @@
 
     private async Task LoadCourses()
     {
-        _allCourses = await CourseService.GetCoursesForCardsAsync(_query);
+        _page = await CourseService.GetCoursesForCardsAsync(_query);
+        _allCourses = _page.Items.ToList();
         _courses = new List<CourseListItemVm>(_allCourses); // Копируем для фильтрации
         if (UserRequestContext.UserRole == "Moderator" && UserRequestContext.ActiveBranchUuid.HasValue)
         {
@@ -305,14 +307,8 @@
         }
 
         // 4. ПРИМЕНЯЕМ пагинацию и сохраняем результат
-        _courses = filteredCourses
-            .Skip((_query.Page - 1) * _query.PageSize)
-            .Take(_query.PageSize)
-            .ToList();
-
-        // 5. Обновляем общее количество для пагинации
-        TotalCount = filteredCourses.Count();
-
+        _page = await CourseService.GetCoursesForCardsAsync(_query);
+        
         StateHasChanged();
     }
 

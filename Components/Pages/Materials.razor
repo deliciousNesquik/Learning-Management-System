@@ -1,6 +1,166 @@
 @page "/materials"
-<h3>Materials</h3>
+<PageTitle>Библиотека материалов</PageTitle>
+
+@using LMS.Components.Shared
+@using LMS.DTOs.CardsView
+@using LMS.Services
+@using LMS.DTOs.Material
+@using LMS.DTOs.TableView
+@using LMS.Infrastructure.Helpers
+@using LMS.Models.Database
+@rendermode InteractiveServer
+
+@inject UserRequestContext UserRequestContext
+@inject MaterialService MaterialService
+@inject NavigationManager NavigationManager
+
+<AccessControl IsLoaded="_isLoaded" CanRead="_canRead" PageName="Материалы">
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-0">Библиотека материалов</h2>
+                <p class="text-muted">Управление учебными файлами и ресурсами</p>
+            </div>
+            @if (_canInsert)
+            {
+                <button class="btn btn-primary" @onclick="NavigateToUpload">
+                    <i class="bi bi-cloud-upload me-2"></i>Загрузить
+                </button>
+            }
+        </div>
+
+        <CardsView TItem="MaterialListItemDto"
+                   Data="_page"
+                   Query="_query"
+                   OnQueryChanged="HandleQueryChanged"
+                   IsLoading="!_isLoaded"
+                   StorageKey="MaterialsGrid"
+                   SortOptions="_sortOptions"
+                   FilterTemplates="_filterTemplates"
+                   FilterDisplayNames="_filterDisplayNames">
+            <CardTemplate>
+                <div class="card h-100 shadow-sm border-0 material-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="material-icon-wrapper me-3">
+                                @GetFileIcon(context.TypeName)
+                            </div>
+                            <div class="overflow-hidden">
+                                <h6 class="card-title fw-bold text-truncate mb-1" title="@context.Title">
+                                    @context.Title
+                                </h6>
+                                <span class="badge bg-light text-dark border">@context.TypeName</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="d-block text-muted mb-1"><i class="bi bi-book me-1"></i>Курс:</small>
+                            <div class="text-truncate small fw-medium">@context.CourseName</div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center pb-3">
+                        <div class="file-info">
+                            <span class="d-block small text-muted">@FileSizeFormatter.FormatBytes(context.FileSizeBytes)</span>
+                            <span class="d-block" style="font-size: 0.7rem; color: #adb5bd;">@context.CreatedAt.ToString("dd.MM.yyyy")</span>
+                        </div>
+                        <div class="btn-group">
+                            <a href="@context.AccessUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="@context.AccessUrl" download="@context.Title" class="btn btn-sm btn-primary">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </CardTemplate>
+        </CardsView>
+    </div>
+</AccessControl>
+
+<style>
+    .material-icon-wrapper {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        font-size: 1.5rem;
+    }
+    .material-card { transition: transform 0.2s; }
+    .material-card:hover { transform: translateY(-5px); }
+    .shadow-inner { box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+</style>
 
 @code {
+    private bool _canRead, _canInsert;
+    private bool _isLoaded;
+    private PagedResult<MaterialListItemDto> _page = new();
+    private CardQuery _query = new();
+
+    private Dictionary<string, string> _sortOptions = new()
+    {
+        { "createdAt", "Сначала новые" },
+        { "title", "По названию" },
+        { "size", "По размеру" }
+    };
+
+    private Dictionary<string, string> _filterDisplayNames = new()
+    {
+        { "type", "Тип файла" },
+        { "course", "Курс" }
+    };
+
+    private List<RenderFragment> _filterTemplates = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserRequestContext.UserUuid.HasValue)
+        {
+            // Используем константы для материалов
+            _canRead = await UserRequestContext.HasPermission("materials", SqlOperation.Select);
+            _canInsert = await UserRequestContext.HasPermission("materials", SqlOperation.Insert);
+
+            if (_canRead)
+            {
+                await LoadData();
+                // Метод создания фильтров можно вынести в отдельный Helper или оставить тут
+                BuildFilters();
+            }
+        }
+        _isLoaded = true;
+    }
+
+    private async Task LoadData()
+    {
+        _page = await MaterialService.GetMaterialsAsync(_query);
+    }
+
+    private async Task HandleQueryChanged(CardQuery newQuery)
+    {
+        _query = newQuery;
+        await LoadData();
+        StateHasChanged();
+    }
     
+    private void BuildFilters()
+    {
+        // Логика создания RenderFragment для фильтров (как у тебя была в курсах)
+        // Но теперь они просто меняют _query.Filters и вызывают LoadData
+    }
+
+    private RenderFragment GetFileIcon(string typeName) => typeName.ToLower() switch
+    {
+        "pdf" => @<i class="bi bi-file-earmark-pdf text-danger"></i>,
+        "video" => @<i class="bi bi-play-circle text-primary"></i>,
+        "presentation" => @<i class="bi bi-file-earmark-ppt text-warning"></i>,
+        "image" => @<i class="bi bi-file-earmark-image text-info"></i>,
+        "archive" => @<i class="bi bi-file-earmark-zip text-secondary"></i>,
+        _ => @<i class="bi bi-file-earmark-text text-muted"></i>
+    };
+
+    private void NavigateToUpload() => NavigationManager.NavigateTo("/materials/upload");
 }

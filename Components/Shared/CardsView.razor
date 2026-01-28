@@ -1,6 +1,7 @@
 @using System.Collections
 @using System.Threading
 @using LMS.DTOs.CardsView
+@using LMS.DTOs.TableView
 @using LMS.Interfaces
 @typeparam TItem
 @inject IStorageService Storage
@@ -82,9 +83,9 @@
         }
 
         <div class="row g-4">
-            @if (Items != null && Items.Any())
+            @if (Data.Items != null && Data.Items.Any())
             {
-                @foreach (var item in Items)
+                @foreach (var item in Data.Items)
                 {
                     <div class="col-sm-12 col-md-6 col-lg-4 animate__animated animate__fadeIn">
                         @CardTemplate(item)
@@ -103,7 +104,7 @@
     
     <div class="d-flex justify-content-between align-items-center mt-3">
         <span class="text-muted small">
-            Показано с @((Query.Page - 1) * Query.PageSize + 1) по @Math.Min(Query.Page * Query.PageSize, TotalCount) из @TotalCount
+            Показано с @((Query.Page - 1) * Query.PageSize + 1) по @Math.Min(Query.Page * Query.PageSize, Data.TotalCount) из @Data.TotalCount
         </span>
 
         <nav>
@@ -132,7 +133,7 @@
                 
                 @*<li class="page-item active"><span class="page-link">@Query.Page</span></li>*@
                 
-                <li class="page-item @(Query.Page * Query.PageSize >= TotalCount ? "disabled" : "")">
+                <li class="page-item @(Query.Page * Query.PageSize >= TotalPages ? "disabled" : "")">
                     <button class="page-item page-link" @onclick="NextPage"><i class="bi bi-chevron-right"></i></button>
                 </li>
             </ul>
@@ -257,8 +258,7 @@
 </style>
 
 @code {
-    [Parameter][EditorRequired] public List<TItem>? Items { get; set; }
-    [Parameter][EditorRequired] public int TotalCount { get; set; }
+    [Parameter, EditorRequired] public PagedResult<TItem> Data { get; set; } = default!;
     [Parameter][EditorRequired] public CardQuery Query { get; set; } = new();
     [Parameter][EditorRequired] public EventCallback<CardQuery> OnQueryChanged { get; set; }
     [Parameter] public RenderFragment<TItem> CardTemplate { get; set; } = default!;
@@ -273,8 +273,9 @@
     private string _searchText = "";
     private CancellationTokenSource? _searchCts;
     private CardsState _state = new();
-
-    private int TotalPages => (int)Math.Ceiling((double)TotalCount / Query.PageSize);
+    
+    
+    private int TotalPages => (int)Math.Ceiling((double)Data.TotalCount / Query.PageSize);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
