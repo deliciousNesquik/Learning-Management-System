@@ -4,18 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Data;
 
-public class DatabaseContext : DbContext
+public class DatabaseContext(DbContextOptions<DatabaseContext> options, IServiceProvider serviceProvider)
+    : DbContext(options)
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public DatabaseContext(DbContextOptions<DatabaseContext> options, IServiceProvider serviceProvider) : base(options)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var interceptor = _serviceProvider.GetService<PostgresConnectionInterceptor>();
+        var interceptor = serviceProvider.GetService<PostgresConnectionInterceptor>();
         if (interceptor != null)
             optionsBuilder.AddInterceptors(interceptor);
         
