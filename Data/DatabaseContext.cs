@@ -17,6 +17,8 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options, IService
     }
     
     public DbSet<Administrator> Administrators { get; set; }
+    public DbSet<User> Users { get; set; }
+    public DbSet<UserRole> UsersRole { get; set; }
     public DbSet<Organization> Organizations { get; set; }
     public DbSet<LegalForm> LegalForms { get; set; }
     public DbSet<Moderator> Moderators { get; set; }

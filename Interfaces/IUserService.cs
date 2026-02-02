@@ -5,6 +5,10 @@ namespace LMS.Interfaces;
 
 public interface IUserService<TItemVm, TStatsVm, TCreateVm, TEditVm>
 {
+    
+    
+    
+    
     Task<PagedResult<TItemVm>> GetPagedAsync(TableQuery query);
     Task<TStatsVm> GetStatsAsync();
     Task<CreateUserResult> CreateAsync(TCreateVm model);
