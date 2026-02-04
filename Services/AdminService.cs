@@ -131,7 +131,6 @@ public class AdminService(
 
     public async Task<UpdateUserResult> UpdateAsync(EditAdminVm model)
     {
-        Console.WriteLine("начало");
         await using var db = await dbFactory.CreateDbContextAsync();
         var admin = await db.Administrators.FirstOrDefaultAsync(a => a.Uuid == model.Uuid);
 
@@ -147,7 +146,6 @@ public class AdminService(
         try
         {
             await db.SaveChangesAsync();
-            Console.WriteLine("Выполнилось...");
             return UpdateUserResult.Success(model.Uuid);
         }
         catch (Exception errorMessage) { return UpdateUserResult.UnknownError(model.Uuid, errorMessage.ToString()); }

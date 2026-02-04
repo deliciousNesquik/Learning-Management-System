@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace LMS.Data.Entities;
+namespace LMS.Data.Entities.User;
 
 [Table("users_role", Schema = "public")]
 public class UserRole

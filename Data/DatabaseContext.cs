@@ -1,5 +1,6 @@
 using LMS.Data.Configuration;
 using LMS.Data.Entities;
+using LMS.Data.Entities.User;
 using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Data;

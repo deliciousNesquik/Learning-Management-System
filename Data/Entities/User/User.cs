@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 
-namespace LMS.Data.Entities;
+namespace LMS.Data.Entities.User;
 
 [Table("users", Schema = "public")]
 public class User
