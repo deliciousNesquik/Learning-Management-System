@@ -34,6 +34,9 @@ public class User
     [Column("role")]
     public Guid Role { get; set; }
     
+    [Column("is_active")]
+    public bool IsActive { get; set; } = true;
+    
     [Column("additional_fields")]
     public JsonContent? AdditionalFields { get; set; }
     

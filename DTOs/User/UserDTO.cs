@@ -3,16 +3,19 @@
 public class UserDto
 {
     public Guid Uuid { get; init; }
-    public string Login { get; init; } = "";
+    
+    public Guid Role { get; set; }
+    public string Login { get; set; } = "";
+    public string PlainPassword { get; set; } = "";
     
     public required string Surname { get; set; }
     public required string Name { get; set; }
-    public string? Patronymic { get; set; }
+    public string? GivenName { get; set; }
     
     public DateTime CreatedAt { get; init; }
     public Guid CreatedBy { get; init; }
     
-    public bool IsActive { get; init; }
+    public bool IsActive { get; set; }
     
     
     /// <summary>
@@ -24,5 +27,5 @@ public class UserDto
     ///     insurance : "5346573252",
     /// }
     /// </summary>
-    public JsonContent? AdditionalInfo { get; init; }
+    public JsonContent? AdditionalFields { get; set; }
 }
