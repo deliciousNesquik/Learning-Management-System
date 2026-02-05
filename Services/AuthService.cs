@@ -2,6 +2,7 @@ using System.Security.Claims;
 using LMS.Data;
 using LMS.Data.Entities;
 using LMS.Models;
+using LMS.Models.Auth;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,89 +11,68 @@ namespace LMS.Services;
 
 public class AuthService(
     IDbContextFactory<DatabaseContext> dbFactory,
-    IPasswordHasher<Administrator> adminHasher,
-    IPasswordHasher<Moderator> modHasher,
-    IPasswordHasher<Employee> empHasher)
+    IPasswordHasher<Data.Entities.User.User> passwordHasher)
 {
-    public async Task<AuthModel> AuthenticateUser(string login, string password)
+    public async Task<AuthResult> AuthenticateUser(string login, string password)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
 
-        // 1. Администратор
-        var administrator = await db.Administrators.FirstOrDefaultAsync(u => u.Login == login && u.IsActive);
-        if (administrator != null &&
-            adminHasher.VerifyHashedPassword(administrator, administrator.Password.Trim(), password.Trim()) !=
-            PasswordVerificationResult.Failed)
-            return new AuthModel(
-                CreatePrincipal(administrator.Uuid, administrator.Login, "Administrator", administrator.Surname,
-                    administrator.Name, administrator.Patronymic), "");
-
-        // 2. Модератор
-        var moderator = await db.Moderators.FirstOrDefaultAsync(u => u.Login == login && u.IsActive);
-        if (moderator != null &&
-            modHasher.VerifyHashedPassword(moderator, moderator.Password.Trim(), password.Trim()) !=
-            PasswordVerificationResult.Failed)
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Login == login);
+        
+        // Если такого пользователя не существует.
+        if (user == null)
         {
-            var moderatorBranchUuids = await db.BranchesModerators
-                .Where(bm => bm.ModeratorUuid == moderator.Uuid)
-                .Select(bm => bm.BranchUuid)
-                .ToListAsync();
-
-            if (moderatorBranchUuids.Count == 0)
-                return new AuthModel(null, "ERR_NO_ORGANIZATION"); // Код: Нет организации
-
-            var activeBranchUuids = await db.Subscriptions
-                .Where(s => moderatorBranchUuids.Contains(s.BranchUuid) && s.IsActive && s.EndDate > DateTime.Now)
-                .Select(s => s.BranchUuid)
-                .Distinct()
-                .ToListAsync();
-
-            if (activeBranchUuids.Any())
-                return new AuthModel(
-                    CreatePrincipal(moderator.Uuid, moderator.Login, "Moderator", moderator.Surname, moderator.Name,
-                        moderator.Patronymic, activeBranchUuids), "");
-
-            return new AuthModel(null, "ERR_SUBSCRIPTION_EXPIRED"); // Код: Подписка истекла
+            // Данный ход сделан для того, чтобы злоумышленники не смогли
+            // вычислить по времени выполнения запроса, какой логин существует, а какой нет.
+            passwordHasher.HashPassword(new Data.Entities.User.User(), "dummy_pass");
+            
+            return AuthResult.Failure(AuthErrorCode.ErrInvalidCredentials);
         }
 
-        // 3. Обучающийся
-        var employee = await db.Employees.FirstOrDefaultAsync(u => u.Login == login && u.IsActive);
-        if (employee != null && empHasher.VerifyHashedPassword(employee, employee.Password.Trim(), password.Trim()) !=
-            PasswordVerificationResult.Failed)
-            return new AuthModel(
-                CreatePrincipal(employee.Uuid, employee.Login, "Employee", employee.Surname, employee.Name,
-                    employee.Patronymic), "");
+        // Если пользователь не активный, то ему запрещено входить на платформу.
+        if (!user.IsActive)
+            return AuthResult.Failure(AuthErrorCode.ErrNoActiveAccount);
 
-        return new AuthModel(null, "ERR_INVALID_CREDENTIALS"); // Код: Неверный логин/пароль
+        // Если у пользователя неверный пароль, то ему запрещено входить на платформу.
+        if (passwordHasher.VerifyHashedPassword(user, user.Password, password) == PasswordVerificationResult.Failed)
+            return AuthResult.Failure(AuthErrorCode.ErrInvalidCredentials);
+
+        // TODO: Позже реализовать получение ролей не из БД, а кешированные заранее значения.
+        var administratorRole = db.UsersRole.Where(u => u.Name == "Administrator").Select(u => u.Uuid).FirstOrDefault();
+        var moderatorRole = db.UsersRole.Where(u => u.Name == "Moderator").Select(u => u.Uuid).FirstOrDefault();
+        var employeeRole = db.UsersRole.Where(u => u.Name == "Employee").Select(u => u.Uuid).FirstOrDefault();
+        
+        // Если роль пользователя администратор тогда проверки завершены.
+        if (user.Role == administratorRole)
+        {
+            // TODO: Реализовать полный сбор данных пользователя и загрузить в кеш.
+            return AuthResult.Success(CreatePrincipal(user.Uuid, user.Role));
+        }
+        
+        // Если роль пользователя модератор тогда необходимо загрузить его филиалы, подписку и проверить их действительность.
+        if (user.Role == moderatorRole)
+        {
+            // TODO: Реализовать полный сбор данных пользователя в том числе подписки их действительность, а также филиалы в которых работает данный соторудник.
+            return AuthResult.Success(CreatePrincipal(user.Uuid, user.Role));
+        }
+
+        // Если роль пользователя обучающийся тогда необходимо загрузить его филиал где он числится, подписку и проверить их действительность.
+        if (user.Role == employeeRole)
+        {
+            // TODO: Реализовать полный сбор данных пользователя в том числе его филиала и подписку на платформу.
+            return AuthResult.Success(CreatePrincipal(user.Uuid, user.Role));
+        }
+        
+        return AuthResult.Failure(AuthErrorCode.ErrInvalidCredentials);
     }
-
-    private static ClaimsPrincipal CreatePrincipal(
-        Guid uuid,
-        string login,
-        string role,
-        string surname, string name, string? patronymic,
-        List<Guid>? activeBranchUuids = null)
+    
+    private static ClaimsPrincipal CreatePrincipal(Guid uuid, Guid role)
     {
         var claims = new List<Claim>
         {
-            new(ClaimTypes.SerialNumber, uuid.ToString()), // UUID пользователя.
-            new(ClaimTypes.NameIdentifier, login), // login пользователя.
-            new(ClaimTypes.Role, role), // role пользователя.
-            new(ClaimTypes.Surname, surname), // surname пользователя.
-            new(ClaimTypes.Name, name), // name пользователя.
-            new(ClaimTypes.GivenName, patronymic ?? "") // patronymic/given_name пользователя.
+            new(ClaimTypes.NameIdentifier, uuid.ToString()),
+            new (ClaimTypes.Role, role.ToString())
         };
-        
-        if (activeBranchUuids != null && activeBranchUuids.Count != 0)
-        {
-            // Добавляем список всех доступных филиалов
-            claims.AddRange(activeBranchUuids.Select(id => new Claim("BranchUuid", id.ToString())));
-
-            // УСТАНАВЛИВАЕМ ПЕРВЫЙ ПО УМОЛЧАНИЮ
-            // Мы берем первый ID из списка и записываем его в специальный клейм
-            claims.Add(new Claim("ActiveBranchUuid", activeBranchUuids.First().ToString()));
-        }
-        
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         return new ClaimsPrincipal(identity);

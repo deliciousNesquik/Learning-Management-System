@@ -14,9 +14,9 @@ public class AuthController(AuthService authService) : ControllerBase
     {
         var principal = await authService.AuthenticateUser(login, password);
 
-        if (!string.IsNullOrEmpty(principal.ErrorMessage))
+        if (principal is { ClaimsPrincipal: null, ErrorMessage: not null })
             return Redirect($"/login?error={principal.ErrorMessage}");
-
+        
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
             principal.ClaimsPrincipal,

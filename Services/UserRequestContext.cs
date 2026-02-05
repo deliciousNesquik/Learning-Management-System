@@ -23,16 +23,6 @@ public class UserRequestContext(IHttpContextAccessor httpContextAccessor, IServi
             return null;
         }
     }
-
-    public string? UserLogin
-    {
-        get
-        {
-            var user = httpContextAccessor.HttpContext?.User;
-            var claim = user?.FindFirst(ClaimTypes.NameIdentifier);
-            return claim?.Value;
-        }
-    }
     
     public string? UserRole
     {
@@ -40,6 +30,18 @@ public class UserRequestContext(IHttpContextAccessor httpContextAccessor, IServi
         {
             var user = httpContextAccessor.HttpContext?.User;
             var claim = user?.FindFirst(ClaimTypes.Role);
+            return claim?.Value;
+        }
+    }
+
+    
+    
+    public string? UserLogin
+    {
+        get
+        {
+            var user = httpContextAccessor.HttpContext?.User;
+            var claim = user?.FindFirst(ClaimTypes.NameIdentifier);
             return claim?.Value;
         }
     }
